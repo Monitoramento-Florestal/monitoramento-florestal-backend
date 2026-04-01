@@ -3,7 +3,7 @@
 > A robust backend API for digital geographic mapping and forest inventory, developed as an interdisciplinary project between the Forest Engineering and Computer Science departments.
 
 ## 📖 1. Introduction
-**Arbor** aims to create a web platform for the geographic mapping and inventory of trees located around the Department of Forest Science. This initiative integrates forest measurement data, bole quality assessment, and injury identification into an accessible and visually intuitive digital platform.
+**Arbor** aims to create a web platform for the geographic mapping and inventory of trees located on the campus of the Federal Rural University of Pernambuco. This initiative integrates forest measurement data, bole quality assessment, and injury identification, among other factors, into an accessible and visually intuitive digital platform.
 
 ## 🎯 2. Project Objectives
 
