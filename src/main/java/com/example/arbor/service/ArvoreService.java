@@ -65,6 +65,8 @@ public_user(somente as aprovadas)*/
                 .collect(Collectors.toList());
     }
 
+    //Alem disso teria um metodo pra armazenar os registros para futuras consultas
+
     public List<ArvoreResponseDTO> buscarPorEspecie(String especie) {
         return repository.findByEspecieContainingIgnoreCase(especie).stream()
                 .map(ArvoreResponseDTO::new)
