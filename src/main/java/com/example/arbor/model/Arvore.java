@@ -14,26 +14,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class Arvore {
+public class Arvore extends DadosArvore{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private String especie;
-
-    @Column(nullable = false)
-    private Double altura;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "condicao", nullable = false)
-    private CondicaoArvore condicao;
-
-    @Column(name = "data_registro", nullable = false)
-    private LocalDate dataRegistro = LocalDate.now();
-
-
-    @Column(name = "localizacao", columnDefinition = "geometry(Point, 4326)", nullable = false)
-    private Point localizacao;
+    @Column(name = "data_aprovacao", nullable = false)
+    private LocalDate dataAprovacao = LocalDate.now();
 }
