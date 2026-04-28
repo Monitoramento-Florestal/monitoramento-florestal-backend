@@ -2,10 +2,7 @@ package com.example.arbor.service;
 
 import com.example.arbor.dto.ArvoreRequestDTO;
 import com.example.arbor.dto.ArvoreResponseDTO;
-import com.example.arbor.model.Arvore;
-import com.example.arbor.model.CondicaoArvore;
-import com.example.arbor.model.Perfil;
-import com.example.arbor.model.Usuario;
+import com.example.arbor.model.*;
 import com.example.arbor.repository.ArvoreRepository;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -42,6 +39,28 @@ public class ArvoreService {
 
     public List<ArvoreResponseDTO> filtrarPorCondicao(CondicaoArvore condicao) {
         return repository.findByCondicao(condicao).stream()
+                .map(ArvoreResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+/*
+aqui na camada de service é nwcessario esse filtro por causa do acesso dos usuários, de modo que:
+administrador/gestor(vê todos, vom foco nos pendentes)
+pesquisador(Vê as suas submissões, idependente do status, e as aprovadas do sistema)
+public_user(somente as aprovadas)*/
+    public List<ArvoreResponseDTO> filtrarPorStatus(StatusRegistro status) {
+        return repository.findByStatus(status).stream()
+                .map(ArvoreResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+    //pesquisador(Vê as suas submissões, idependente do status, e as aprovadas do sistema)
+    public List<ArvoreResponseDTO> filtrarPorPesquisadorId(UUID id) {
+        return repository.findByPesquisadorId(id).stream()
+                .map(ArvoreResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+    //pesquisador(Vê as suas submissões, idependente do status, e as aprovadas do sistema)
+    public List<ArvoreResponseDTO> filtrarPorStatusEPesquisadorId(StatusRegistro status, UUID id) {
+        return repository.findByStatusAndPesquisadorId(status, id).stream()
                 .map(ArvoreResponseDTO::new)
                 .collect(Collectors.toList());
     }

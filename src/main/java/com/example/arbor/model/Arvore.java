@@ -30,9 +30,13 @@ public class Arvore {
     @Column(name = "condicao", nullable = false)
     private CondicaoArvore condicao;
 
+    //nesse modelo um novo atributo é adicionado
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_registro", nullable = false)
+    private StatusRegistro status_registro;
+
     @Column(name = "data_registro", nullable = false)
     private LocalDate dataRegistro = LocalDate.now();
-
 
     @Column(name = "localizacao", columnDefinition = "geometry(Point, 4326)", nullable = false)
     private Point localizacao;

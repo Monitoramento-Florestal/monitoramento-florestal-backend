@@ -3,6 +3,7 @@ package com.example.arbor.controller;
 import com.example.arbor.dto.ArvoreRequestDTO;
 import com.example.arbor.dto.ArvoreResponseDTO;
 import com.example.arbor.model.CondicaoArvore;
+import com.example.arbor.model.StatusRegistro;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.ArvoreService;
 import com.example.arbor.service.UsuarioService;
@@ -44,6 +45,25 @@ public class ArvoreController {
     @GetMapping("/condicao/{condicao}")
     public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorCondicao(@PathVariable CondicaoArvore condicao) {
         return ResponseEntity.ok(arvoreService.filtrarPorCondicao(condicao));
+    }
+
+    //filtro que busca os status dos registros no sistema
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorStatus(@PathVariable StatusRegistro status) {
+        return ResponseEntity.ok(arvoreService.filtrarPorStatus(status));
+    }
+
+    //filtro que busca as solicitações de um pesquisador(uso do pesquisador)
+    @GetMapping("/pesquisador/{id}")
+    public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorPesquisadorId(@PathVariable UUID id) {
+        return ResponseEntity.ok(arvoreService.filtrarPorPesquisadorId(id));
+    }
+
+    //filtro que busca as solicitações de um pesquisador com determinado status(uso do pesquisador)
+    @GetMapping("/status/{status}/pesquisador/{id}")
+    public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorStatusAndPesquisadorId(@PathVariable StatusRegistro status,
+                                                                                    @PathVariable UUID id) {
+        return ResponseEntity.ok(arvoreService.filtrarPorStatusEPesquisadorId(status, id));
     }
 
     @PostMapping
