@@ -64,4 +64,14 @@ public class ArvoreController {
         arvoreService.deletar(id, executor);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ArvoreResponseDTO> atualizar(
+            @PathVariable UUID id,
+            @RequestBody ArvoreRequestDTO dto,
+            @RequestHeader("executor-id") UUID executorId) {
+
+        Usuario executor = usuarioService.buscarEntidadePorId(executorId);
+        return ResponseEntity.ok(arvoreService.atualizar(id, dto, executor));
+    }
 }
