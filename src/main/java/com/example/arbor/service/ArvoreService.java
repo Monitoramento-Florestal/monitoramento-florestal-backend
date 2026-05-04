@@ -1,7 +1,7 @@
 package com.example.arbor.service;
 
-import com.example.arbor.dto.ArvoreRequestDTO;
-import com.example.arbor.dto.ArvoreResponseDTO;
+import com.example.arbor.dto.request.ArvoreRequestDTO;
+import com.example.arbor.dto.response.ArvoreResponseDTO;
 import com.example.arbor.model.Arvore;
 import com.example.arbor.model.CondicaoArvore;
 import com.example.arbor.model.Perfil;

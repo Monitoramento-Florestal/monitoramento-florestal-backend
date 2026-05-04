@@ -1,10 +1,11 @@
 package com.example.arbor.service;
 
-import com.example.arbor.dto.UsuarioRequestDTO;
-import com.example.arbor.dto.UsuarioResponseDTO;
+import com.example.arbor.dto.request.UsuarioRequestDTO;
+import com.example.arbor.dto.response.UsuarioResponseDTO;
 import com.example.arbor.model.Perfil;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 public class UsuarioService {
 
     private final UsuarioRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository repository) {
+    public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Usuario buscarEntidadePorId(UUID id) {
@@ -66,7 +69,7 @@ public class UsuarioService {
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setSenha(dto.senha());
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
         usuario.setPerfilAcesso(dto.perfilAcesso());
 
         return new UsuarioResponseDTO(repository.save(usuario));
