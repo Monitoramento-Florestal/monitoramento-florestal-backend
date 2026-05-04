@@ -47,25 +47,6 @@ public class ArvoreController {
         return ResponseEntity.ok(arvoreService.filtrarPorCondicao(condicao));
     }
 
-    //filtro que busca os status dos registros no sistema
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorStatus(@PathVariable StatusRegistro status) {
-        return ResponseEntity.ok(arvoreService.filtrarPorStatus(status));
-    }
-
-    //filtro que busca as solicitações de um pesquisador(uso do pesquisador)
-    @GetMapping("/pesquisador/{id}")
-    public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorPesquisadorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(arvoreService.filtrarPorPesquisadorId(id));
-    }
-
-    //filtro que busca as solicitações de um pesquisador com determinado status(uso do pesquisador)
-    @GetMapping("/status/{status}/pesquisador/{id}")
-    public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorStatusAndPesquisadorId(@PathVariable StatusRegistro status,
-                                                                                    @PathVariable UUID id) {
-        return ResponseEntity.ok(arvoreService.filtrarPorStatusEPesquisadorId(status, id));
-    }
-
     @PostMapping
     public ResponseEntity<ArvoreResponseDTO> cadastrar(
             @RequestBody ArvoreRequestDTO dto,

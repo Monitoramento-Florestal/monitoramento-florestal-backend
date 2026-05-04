@@ -38,34 +38,10 @@ public class ArvoreService {
     }
 
     public List<ArvoreResponseDTO> filtrarPorCondicao(CondicaoArvore condicao) {
-        return repository.findByCondicao(condicao).stream()
+        return repository.findByCondicaoAtual(condicao).stream()
                 .map(ArvoreResponseDTO::new)
                 .collect(Collectors.toList());
     }
-/*
-aqui na camada de service é nwcessario esse filtro por causa do acesso dos usuários, de modo que:
-administrador/gestor(vê todos, vom foco nos pendentes)
-pesquisador(Vê as suas submissões, idependente do status, e as aprovadas do sistema)
-public_user(somente as aprovadas)*/
-    public List<ArvoreResponseDTO> filtrarPorStatus(StatusRegistro status) {
-        return repository.findByStatus(status).stream()
-                .map(ArvoreResponseDTO::new)
-                .collect(Collectors.toList());
-    }
-    //pesquisador(Vê as suas submissões, idependente do status, e as aprovadas do sistema)
-    public List<ArvoreResponseDTO> filtrarPorPesquisadorId(UUID id) {
-        return repository.findByPesquisadorId(id).stream()
-                .map(ArvoreResponseDTO::new)
-                .collect(Collectors.toList());
-    }
-    //pesquisador(Vê as suas submissões, idependente do status, e as aprovadas do sistema)
-    public List<ArvoreResponseDTO> filtrarPorStatusEPesquisadorId(StatusRegistro status, UUID id) {
-        return repository.findByStatusAndPesquisadorId(status, id).stream()
-                .map(ArvoreResponseDTO::new)
-                .collect(Collectors.toList());
-    }
-
-    //Alem disso teria um metodo pra armazenar os registros para futuras consultas
 
     public List<ArvoreResponseDTO> buscarPorEspecie(String especie) {
         return repository.findByEspecieContainingIgnoreCase(especie).stream()
@@ -81,8 +57,8 @@ public_user(somente as aprovadas)*/
 
         Arvore arvore = new Arvore();
         arvore.setEspecie(dto.especie());
-        arvore.setAltura(dto.altura());
-        arvore.setCondicao(dto.condicao());
+        arvore.setAlturaAtual(dto.altura());
+        arvore.setCondicaoAtual(dto.condicao());
 
         Point ponto = geometryFactory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
         arvore.setLocalizacao(ponto);
@@ -92,7 +68,7 @@ public_user(somente as aprovadas)*/
 
     @Transactional
     public void deletar(UUID id, Usuario executor) {
-        if (executor.getPerfilAcesso() != Perfil.GESTOR) {
+        if (executor.getPerfilAcesso() != Perfil.GESTOR && executor.getPerfilAcesso() != Perfil.ADMINISTRADOR) {
             throw new RuntimeException("Acesso negado: Apenas gestores podem excluir registros.");
         }
 
