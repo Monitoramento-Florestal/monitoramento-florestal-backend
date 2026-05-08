@@ -3,7 +3,7 @@
 > A robust backend API for digital geographic mapping and forest inventory, developed as an interdisciplinary project between the Forest Engineering and Computer Science departments.
 
 ## 📖 1. Introduction
-**Arbor** aims to create a web platform for the geographic mapping and inventory of trees located around the Department of Forest Science. This initiative integrates forest measurement data, bole quality assessment, and injury identification into an accessible and visually intuitive digital platform.
+**Arbor** aims to create a web platform for the geographic mapping and inventory of trees located on the campus of the Federal Rural University of Pernambuco. This initiative integrates forest measurement data, bole quality assessment, and injury identification, among other factors, into an accessible and visually intuitive digital platform.
 
 ## 🎯 2. Project Objectives
 
@@ -53,9 +53,28 @@ cd monitoramento-florestal-backend
 docker-compose up -d
 ```
 
-3. **Run the Application:**
+3. **Run the Application (local dev is default):**
 ```bash
 ./mvnw spring-boot:run
+```
+
+**Windows PowerShell:**
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+4. **Production-like run (explicit profile + env var):**
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+export JWT_SECRET="troque-por-uma-chave-com-32-caracteres-ou-mais"
+./mvnw spring-boot:run
+```
+
+**Windows PowerShell:**
+```powershell
+$env:SPRING_PROFILES_ACTIVE="prod"
+$env:JWT_SECRET="troque-por-uma-chave-com-32-caracteres-ou-mais"
+.\mvnw.cmd spring-boot:run
 ```
 
 ## 🐳 Infrastructure Access (pgAdmin)
@@ -63,4 +82,3 @@ If you want to visually inspect the PostGIS database:
 1. Go to `http://localhost:5050` in your browser.
 2. Login with `admin@arbor.com` / `admin`.
 3. Connect to `localhost` (or the container IP) on port `5432`.
-
