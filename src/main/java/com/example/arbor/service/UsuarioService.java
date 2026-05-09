@@ -16,9 +16,13 @@ import java.util.stream.Collectors;
 public class UsuarioService {
 
     private final UsuarioRepository repository;
+    private final TokenResetSenhaRepository tokenResetSenhaRepository;
+    private final EmailService emailService;
 
-    public UsuarioService(UsuarioRepository repository) {
+    public UsuarioService(UsuarioRepository repository, TokenResetSenhaRepository tokenResetSenhaRepository, EmailService emailService) {
         this.repository = repository;
+        this.tokenResetSenhaRepository = tokenResetSenhaRepository;
+        this.emailService = emailService;
     }
 
     public Usuario buscarEntidadePorId(UUID id) {
@@ -49,6 +53,43 @@ public class UsuarioService {
         return usuarios.stream()
                 .map(UsuarioResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    public void solicitarResetSenha(String email) {
+        Optional<Usuario> userOpt = repository.findByEmail(email);
+
+        if (userOpt.isEmpty()) return;
+
+        Usuario usuario = userOpt.get();
+
+        TokenResetSenha token = new TokenResetSenha();
+        token.setToken(UUID.randomUUID().toString());
+        token.setUsuario(usuario);
+        token.setDataExpiracao(LocalDateTime.now().plusMinutes(30));
+        token.setUsado(false);
+
+        tokenResetSenhaRepository.save(token);
+
+        emailService.enviarEmailReset(usuario.getEmail(), token.getToken());
+    }
+
+    public void resetarSenha(String tokenStr, String novaSenha) {
+
+        TokenResetSenha token = tokenResetSenhaRepository
+                .findByTokenAndUsadoFalse(tokenStr)
+                .orElseThrow(() -> new RuntimeException("Token inválido ou já usado"));
+
+        if (token.getDataExpiracao().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expirado");
+        }
+
+        Usuario usuario = token.getUsuario();
+
+        usuario.setSenha(novaSenha);
+        repository.save(usuario);
+
+        token.setUsado(true);
+        tokenResetSenhaRepository.save(token);
     }
 
     @Transactional
