@@ -3,6 +3,7 @@ package com.example.arbor.controller;
 import com.example.arbor.dto.ArvoreRequestDTO;
 import com.example.arbor.dto.ArvoreResponseDTO;
 import com.example.arbor.model.CondicaoArvore;
+import com.example.arbor.model.StatusRegistro;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.ArvoreService;
 import com.example.arbor.service.UsuarioService;
