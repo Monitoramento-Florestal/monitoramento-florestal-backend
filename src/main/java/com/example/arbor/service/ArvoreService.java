@@ -76,4 +76,25 @@ public class ArvoreService {
                 .orElseThrow(() -> new RuntimeException("Árvore não encontrada"));
         repository.delete(arvore);
     }
+
+    @Transactional
+    public ArvoreResponseDTO atualizar(UUID id, ArvoreRequestDTO dto, Usuario executor) {
+        if (executor.getPerfilAcesso() == Perfil.PUBLICO_GERAL) {
+            throw new RuntimeException("Acesso negado: Público não pode atualizar árvores.");
+        }
+
+        Arvore arvore = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Árvore não encontrada"));
+
+        arvore.setEspecie(dto.especie());
+        arvore.setAltura(dto.altura());
+        arvore.setCondicao(dto.condicao());
+
+        Point ponto = geometryFactory.createPoint(
+                new Coordinate(dto.longitude(), dto.latitude())
+        );
+        arvore.setLocalizacao(ponto);
+
+        return new ArvoreResponseDTO(repository.save(arvore));
+    }
 }
