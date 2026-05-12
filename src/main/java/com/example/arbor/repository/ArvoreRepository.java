@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
 
-    List<Arvore> findByCondicao(CondicaoArvore condicao);
+    List<Arvore> findByCondicaoAtual(CondicaoArvore condicao);
 
     List<Arvore> findByEspecieContainingIgnoreCase(String especie);
 }
