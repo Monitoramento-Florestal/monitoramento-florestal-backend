@@ -14,6 +14,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -40,23 +44,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String jwt = authHeader.substring(7);
 
-        final String username = jwtService.extrairUsername(jwt);
+        try {
+            final String username = jwtService.extrairUsername(jwt);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            if (jwtService.isTokenValido(jwt, userDetails) && jwtService.isAccessToken(jwt)) {
+                if (jwtService.isTokenValido(jwt, userDetails) && jwtService.isAccessToken(jwt)) {
 
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (ExpiredJwtException | MalformedJwtException | SignatureException | IllegalArgumentException ex) {
+            SecurityContextHolder.clearContext();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"erro\":\"Token invalido ou expirado.\"}");
+            return;
         }
 
         filterChain.doFilter(request, response);

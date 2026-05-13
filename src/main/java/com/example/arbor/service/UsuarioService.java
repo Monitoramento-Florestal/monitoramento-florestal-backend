@@ -4,12 +4,16 @@ import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
 import com.example.arbor.model.Perfil;
 import com.example.arbor.model.Usuario;
+import com.example.arbor.model.TokenResetSenha;
+import com.example.arbor.repository.TokenResetSenhaRepository;
 import com.example.arbor.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -18,10 +22,18 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenResetSenhaRepository tokenResetSenhaRepository;
+    private final EmailService emailService;
 
-    public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(
+            UsuarioRepository repository,
+            PasswordEncoder passwordEncoder,
+            TokenResetSenhaRepository tokenResetSenhaRepository,
+            EmailService emailService) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenResetSenhaRepository = tokenResetSenhaRepository;
+        this.emailService = emailService;
     }
 
     public Usuario buscarEntidadePorId(UUID id) {
@@ -54,9 +66,48 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    public void solicitarResetSenha(String email) {
+        Optional<Usuario> userOpt = repository.findByEmail(email);
+
+        if (userOpt.isEmpty()) return;
+
+        Usuario usuario = userOpt.get();
+
+        TokenResetSenha token = new TokenResetSenha();
+        token.setToken(UUID.randomUUID().toString());
+        token.setUsuario(usuario);
+        token.setDataExpiracao(LocalDateTime.now().plusMinutes(30));
+        token.setUsado(false);
+
+        tokenResetSenhaRepository.save(token);
+
+        emailService.enviarEmailReset(usuario.getEmail(), token.getToken());
+    }
+
+    public void resetarSenha(String tokenStr, String novaSenha) {
+
+        TokenResetSenha token = tokenResetSenhaRepository
+                .findByTokenAndUsadoFalse(tokenStr)
+                .orElseThrow(() -> new RuntimeException("Token inválido ou já usado"));
+
+        if (token.getDataExpiracao().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expirado");
+        }
+
+        Usuario usuario = token.getUsuario();
+
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
+        repository.save(usuario);
+
+        token.setUsado(true);
+        tokenResetSenhaRepository.save(token);
+    }
+
     @Transactional
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto, Usuario executor) {
-        if (dto.perfilAcesso() == Perfil.GESTOR || dto.perfilAcesso() == Perfil.PESQUISADOR) {
+        if (dto.perfilAcesso() == Perfil.ADMINISTRADOR
+                || dto.perfilAcesso() == Perfil.GESTOR
+                || dto.perfilAcesso() == Perfil.PESQUISADOR) {
             if (executor == null || executor.getPerfilAcesso() != Perfil.GESTOR) {
                 throw new RuntimeException("Erro: Apenas gestores podem atribuir níveis altos de acesso.");
             }
