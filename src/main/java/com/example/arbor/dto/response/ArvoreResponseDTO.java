@@ -10,7 +10,6 @@ public record ArvoreResponseDTO(
         String especie,
         Double altura,
         CondicaoArvore condicao,
-        LocalDate dataRegistro,
         Double latitude,
         Double longitude
 ) {
@@ -18,9 +17,8 @@ public record ArvoreResponseDTO(
         this(
                 arvore.getId(),
                 arvore.getEspecie(),
-                arvore.getAltura(),
-                arvore.getCondicao(),
-                arvore.getDataRegistro(),
+                arvore.getAlturaAtual(),
+                arvore.getCondicaoAtual(),
                 arvore.getLocalizacao().getY(), // Latitude
                 arvore.getLocalizacao().getX()  // Longitude
         );

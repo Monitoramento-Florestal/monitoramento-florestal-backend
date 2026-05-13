@@ -5,6 +5,8 @@ import lombok.*;
 import org.locationtech.jts.geom.Point; // Lembrete: import do JTS para o PostGIS
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -24,16 +26,15 @@ public class Arvore {
     private String especie;
 
     @Column(nullable = false)
-    private Double altura;
+    private Double alturaAtual;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "condicao", nullable = false)
-    private CondicaoArvore condicao;
-
-    @Column(name = "data_registro", nullable = false)
-    private LocalDate dataRegistro = LocalDate.now();
-
+    private CondicaoArvore condicaoAtual;
 
     @Column(name = "localizacao", columnDefinition = "geometry(Point, 4326)", nullable = false)
     private Point localizacao;
+
+    @OneToMany(mappedBy = "arvore", cascade = CascadeType.ALL)
+    private List<RegistroArvore> registros = new ArrayList<>();
 }

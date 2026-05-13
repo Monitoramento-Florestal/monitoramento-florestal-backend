@@ -16,3 +16,16 @@ CREATE TABLE tb_arvore (
                            data_registro DATE,
                            localizacao GEOMETRY(Point, 4326) NOT NULL
 );
+
+
+CREATE TABLE tb_token_reset_senha (
+                            id UUID PRIMARY KEY,
+                            token VARCHAR(255) NOT NULL UNIQUE,
+                            usuario_id UUID NOT NULL,
+                            data_expiracao TIMESTAMP NOT NULL,
+                            usado BOOLEAN NOT NULL,
+
+                            CONSTRAINT fk_usuario
+                                FOREIGN KEY (usuario_id)
+                                REFERENCES tb_usuario(id)
+);

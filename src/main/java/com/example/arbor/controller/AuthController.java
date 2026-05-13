@@ -18,6 +18,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
@@ -65,34 +69,36 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponseDTO> refresh(@RequestBody RefreshRequestDTO dto) {
+    public ResponseEntity<?> refresh(@RequestBody RefreshRequestDTO dto) {
         String refreshToken = dto.refreshToken();
 
-
-        String username = jwtService.extrairUsername(refreshToken);
-
+        final String username;
+        try {
+            username = jwtService.extrairUsername(refreshToken);
+        } catch (ExpiredJwtException | MalformedJwtException | SignatureException | IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Refresh token invalido ou expirado.");
+        }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         if (!(userDetails instanceof Usuario usuario)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Usuario invalido para refresh token.");
         }
-
 
         if (!jwtService.isRefreshTokenValido(refreshToken, usuario)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Refresh token invalido ou expirado.");
         }
-
 
         Integer refreshVersion = usuario.getRefreshTokenVersion();
         int nextVersion = (refreshVersion == null ? 0 : refreshVersion) + 1;
         usuario.setRefreshTokenVersion(nextVersion);
         usuarioRepository.save(usuario);
 
-
         String novoAccessToken = jwtService.gerarTokenAcesso(usuario);
         String novoRefreshToken = jwtService.gerarTokenRefresh(usuario);
-
 
         return ResponseEntity.ok(new LoginResponseDTO(novoAccessToken, novoRefreshToken, usuario.getEmail(), usuario.getNome()));
     }
