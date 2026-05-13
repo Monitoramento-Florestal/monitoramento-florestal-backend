@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class PasswordResetToken {
+public class TokenResetSenha {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,8 +26,8 @@ public class PasswordResetToken {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "expiracao", nullable = false)
-    private LocalDateTime expiracao;
+    @Column(name = "data_expiracao", nullable = false)
+    private LocalDateTime dataExpiracao;
 
     @Column(name = "usado", nullable = false)
     private Boolean usado = false;

@@ -1,14 +1,19 @@
 package com.example.arbor.service;
 
-import com.example.arbor.dto.UsuarioRequestDTO;
-import com.example.arbor.dto.UsuarioResponseDTO;
+import com.example.arbor.dto.request.UsuarioRequestDTO;
+import com.example.arbor.dto.response.UsuarioResponseDTO;
 import com.example.arbor.model.Perfil;
 import com.example.arbor.model.Usuario;
+import com.example.arbor.model.TokenResetSenha;
+import com.example.arbor.repository.TokenResetSenhaRepository;
 import com.example.arbor.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -16,11 +21,17 @@ import java.util.stream.Collectors;
 public class UsuarioService {
 
     private final UsuarioRepository repository;
+    private final PasswordEncoder passwordEncoder;
     private final TokenResetSenhaRepository tokenResetSenhaRepository;
     private final EmailService emailService;
 
-    public UsuarioService(UsuarioRepository repository, TokenResetSenhaRepository tokenResetSenhaRepository, EmailService emailService) {
+    public UsuarioService(
+            UsuarioRepository repository,
+            PasswordEncoder passwordEncoder,
+            TokenResetSenhaRepository tokenResetSenhaRepository,
+            EmailService emailService) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
         this.tokenResetSenhaRepository = tokenResetSenhaRepository;
         this.emailService = emailService;
     }
@@ -85,7 +96,7 @@ public class UsuarioService {
 
         Usuario usuario = token.getUsuario();
 
-        usuario.setSenha(novaSenha);
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
         repository.save(usuario);
 
         token.setUsado(true);
@@ -94,7 +105,9 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto, Usuario executor) {
-        if (dto.perfilAcesso() == Perfil.GESTOR || dto.perfilAcesso() == Perfil.PESQUISADOR) {
+        if (dto.perfilAcesso() == Perfil.ADMINISTRADOR
+                || dto.perfilAcesso() == Perfil.GESTOR
+                || dto.perfilAcesso() == Perfil.PESQUISADOR) {
             if (executor == null || executor.getPerfilAcesso() != Perfil.GESTOR) {
                 throw new RuntimeException("Erro: Apenas gestores podem atribuir níveis altos de acesso.");
             }
@@ -107,7 +120,7 @@ public class UsuarioService {
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setSenha(dto.senha());
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
         usuario.setPerfilAcesso(dto.perfilAcesso());
 
         return new UsuarioResponseDTO(repository.save(usuario));

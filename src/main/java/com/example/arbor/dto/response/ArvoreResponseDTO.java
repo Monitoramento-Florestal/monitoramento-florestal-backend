@@ -1,4 +1,4 @@
-package com.example.arbor.dto;
+package com.example.arbor.dto.response;
 
 import com.example.arbor.model.Arvore;
 import com.example.arbor.model.CondicaoArvore;

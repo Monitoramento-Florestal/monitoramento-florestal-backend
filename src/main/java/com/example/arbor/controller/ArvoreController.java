@@ -1,14 +1,15 @@
 package com.example.arbor.controller;
 
-import com.example.arbor.dto.ArvoreRequestDTO;
-import com.example.arbor.dto.ArvoreResponseDTO;
+import com.example.arbor.dto.request.ArvoreRequestDTO;
+import com.example.arbor.dto.response.ArvoreResponseDTO;
 import com.example.arbor.model.CondicaoArvore;
-import com.example.arbor.model.StatusRegistro;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.ArvoreService;
 import com.example.arbor.service.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,41 +29,44 @@ public class ArvoreController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<ArvoreResponseDTO>> listarTodas() {
         return ResponseEntity.ok(arvoreService.listarTodas());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<ArvoreResponseDTO> buscarPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(arvoreService.buscarPorId(id));
     }
 
     @GetMapping("/especie")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<ArvoreResponseDTO>> buscarPorEspecie(@RequestParam String nome) {
         return ResponseEntity.ok(arvoreService.buscarPorEspecie(nome));
     }
 
     @GetMapping("/condicao/{condicao}")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorCondicao(@PathVariable CondicaoArvore condicao) {
         return ResponseEntity.ok(arvoreService.filtrarPorCondicao(condicao));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
     public ResponseEntity<ArvoreResponseDTO> cadastrar(
             @RequestBody ArvoreRequestDTO dto,
-            @RequestHeader("executor-id") UUID executorId) {
-
-        Usuario executor = usuarioService.buscarEntidadePorId(executorId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(arvoreService.salvar(dto, executor));
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(arvoreService.salvar(dto, usuarioLogado));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<Void> deletar(
             @PathVariable UUID id,
-            @RequestHeader("executor-id") UUID executorId) {
-
-        Usuario executor = usuarioService.buscarEntidadePorId(executorId);
-        arvoreService.deletar(id, executor);
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+        arvoreService.deletar(id, usuarioLogado);
         return ResponseEntity.noContent().build();
     }
 

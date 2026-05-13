@@ -1,7 +1,7 @@
 package com.example.arbor.service;
 
-import com.example.arbor.dto.ArvoreRequestDTO;
-import com.example.arbor.dto.ArvoreResponseDTO;
+import com.example.arbor.dto.request.ArvoreRequestDTO;
+import com.example.arbor.dto.response.ArvoreResponseDTO;
 import com.example.arbor.model.*;
 import com.example.arbor.repository.ArvoreRepository;
 import org.locationtech.jts.geom.Coordinate;
@@ -68,7 +68,7 @@ public class ArvoreService {
 
     @Transactional
     public void deletar(UUID id, Usuario executor) {
-        if (executor.getPerfilAcesso() != Perfil.GESTOR && executor.getPerfilAcesso() != Perfil.ADMINISTRADOR) {
+        if (executor.getPerfilAcesso() != Perfil.GESTOR) {
             throw new RuntimeException("Acesso negado: Apenas gestores podem excluir registros.");
         }
 
@@ -87,8 +87,8 @@ public class ArvoreService {
                 .orElseThrow(() -> new RuntimeException("Árvore não encontrada"));
 
         arvore.setEspecie(dto.especie());
-        arvore.setAltura(dto.altura());
-        arvore.setCondicao(dto.condicao());
+        arvore.setAlturaAtual(dto.altura());
+        arvore.setCondicaoAtual(dto.condicao());
 
         Point ponto = geometryFactory.createPoint(
                 new Coordinate(dto.longitude(), dto.latitude())

@@ -1,4 +1,4 @@
-package com.example.arbor.dto;
+package com.example.arbor.dto.request;
 
 import com.example.arbor.model.CondicaoArvore;
 import jakarta.validation.constraints.NotBlank;
@@ -9,5 +9,5 @@ public record ArvoreRequestDTO(
         @NotNull Double altura,
         @NotNull CondicaoArvore condicao,
         @NotNull Double latitude,
-        @NotNull Double longitude
-) {}
+        @NotNull Double longitude) {
+}
