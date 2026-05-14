@@ -6,6 +6,7 @@ import com.example.arbor.model.Usuario;
 import com.example.arbor.service.RegistroArvoreService;
 import com.example.arbor.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,15 +30,15 @@ public class RegistroArvoreController {
         return ResponseEntity.ok(registroService.filtrarPorStatus(status));
     }
 
-    @GetMapping("/pesquisador/{id}")
-    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorPesquisadorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(registroService.filtrarPorPesquisadorId(id));
+    @GetMapping("/pesquisador")
+    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorPesquisador(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(registroService.filtrarPorPesquisadorId(usuario.getId()));
     }
 
-    @GetMapping("/status/{status}/pesquisador/{id}")
-    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorStatusAndPesquisadorId(@PathVariable StatusRegistro status,
-                                                                                    @PathVariable UUID id) {
-        return ResponseEntity.ok(registroService.filtrarPorStatusEPesquisadorId(status, id));
+    @GetMapping("/pesquisador/status/{status}")
+    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorStatusAndPesquisador(@PathVariable StatusRegistro status,
+                                                                                    @AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(registroService.filtrarPorStatusEPesquisadorId(status, usuario.getId()));
     }
 
     @GetMapping("/arvore/{id}")

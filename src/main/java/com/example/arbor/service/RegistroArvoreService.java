@@ -29,18 +29,17 @@ public class RegistroArvoreService {
         return registroRepository.findByStatus(status).stream()
                 .map(RegistroResponseDTO::new).collect(Collectors.toList());
     }
-//
+
     public List<RegistroResponseDTO> filtrarPorPesquisadorId(UUID id){
         return registroRepository.findByPesquisadorId(id).stream()
                 .map(RegistroResponseDTO::new).collect(Collectors.toList());
     }
-    //COLOQUEI OS MARCOS COMENTADOS PRA EVIDENCIAR O TRECHO DE CODIGO, A DUVIDA É:
-    //DO MODO Q EU IMPLEMENTEI ISSO PEGA O USUÁRIO(PESQUISADOR) LOGADO?
+
     public List<RegistroResponseDTO> filtrarPorStatusEPesquisadorId(StatusRegistro status, UUID id) {
         return registroRepository.findByStatusAndPesquisadorId(status, id).stream()
                 .map(RegistroResponseDTO::new).collect(Collectors.toList());
     }
-//
+
     public List<RegistroResponseDTO> filtrarPorArvore(UUID id){
         return registroRepository.findByArvoreId(id).stream()
                 .map(RegistroResponseDTO::new).collect(Collectors.toList());
