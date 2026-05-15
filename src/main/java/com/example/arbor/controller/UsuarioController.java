@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -66,22 +65,5 @@ public class UsuarioController {
             @AuthenticationPrincipal Usuario executor) {
         service.deletar(id, executor);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/esqueci-senha")
-    public ResponseEntity<?> esqueciSenha(@RequestBody Map<String, String> body) {
-        service.solicitarResetSenha(body.get("email"));
-        return ResponseEntity.ok("As instruções serão enviadas se o e-mail estiver vinculado a uma conta.");
-    }
-
-    @PostMapping("/resetar-senha")
-    public ResponseEntity<?> resetarSenha(@RequestBody Map<String, String> body) {
-
-        service.resetarSenha(
-                body.get("token"),
-                body.get("novaSenha")
-        );
-
-        return ResponseEntity.ok("Senha atualizada com sucesso");
     }
 }

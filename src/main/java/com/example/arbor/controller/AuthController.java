@@ -1,7 +1,9 @@
 package com.example.arbor.controller;
 
+import com.example.arbor.dto.request.EsqueciSenhaRequestDTO;
 import com.example.arbor.dto.request.LoginRequestDTO;
 import com.example.arbor.dto.request.RefreshRequestDTO;
+import com.example.arbor.dto.request.ResetarSenhaRequestDTO;
 import com.example.arbor.dto.response.LoginResponseDTO;
 import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
@@ -102,6 +104,18 @@ public class AuthController {
         String novoRefreshToken = jwtService.gerarTokenRefresh(usuario);
 
         return ResponseEntity.ok(new LoginResponseDTO(novoAccessToken, novoRefreshToken, usuario.getEmail(), usuario.getNome()));
+    }
+
+    @PostMapping("/esqueci-senha")
+    public ResponseEntity<String> esqueciSenha(@Valid @RequestBody EsqueciSenhaRequestDTO dto) {
+        usuarioService.solicitarResetSenha(dto.email());
+        return ResponseEntity.ok("As instruções serão enviadas se o e-mail estiver vinculado a uma conta.");
+    }
+
+    @PostMapping("/resetar-senha")
+    public ResponseEntity<String> resetarSenha(@Valid @RequestBody ResetarSenhaRequestDTO dto) {
+        usuarioService.resetarSenha(dto.token(), dto.novaSenha());
+        return ResponseEntity.ok("Senha atualizada com sucesso");
     }
 
     @PostMapping("/registrar")
