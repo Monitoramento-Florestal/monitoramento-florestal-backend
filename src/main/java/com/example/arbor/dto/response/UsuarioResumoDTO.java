@@ -1,0 +1,18 @@
+package com.example.arbor.dto.response;
+
+import com.example.arbor.model.Perfil;
+import com.example.arbor.model.Usuario;
+
+import java.util.UUID;
+
+public record UsuarioResumoDTO(
+        UUID id,
+        String nome,
+        String email,
+        Perfil perfilAcesso
+) {
+    public UsuarioResumoDTO(Usuario usuario) {
+        this(usuario.getId(), usuario.getNome(), usuario.getEmail(), usuario.getPerfilAcesso());
+    }
+}
+

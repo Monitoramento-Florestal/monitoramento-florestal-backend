@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -46,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO dto) {
 
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.email(), dto.senha()));
@@ -69,7 +70,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshRequestDTO dto) {
+    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshRequestDTO dto) {
         String refreshToken = dto.refreshToken();
 
         final String username;
@@ -104,7 +105,7 @@ public class AuthController {
     }
 
     @PostMapping("/registrar")
-    public ResponseEntity<UsuarioResponseDTO> registrar(@RequestBody UsuarioRequestDTO dto) {
+    public ResponseEntity<UsuarioResponseDTO> registrar(@Valid @RequestBody UsuarioRequestDTO dto) {
         UsuarioResponseDTO response = usuarioService.salvar(dto, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
