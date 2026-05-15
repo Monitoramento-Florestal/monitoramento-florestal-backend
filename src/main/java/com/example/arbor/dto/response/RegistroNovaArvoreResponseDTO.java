@@ -1,11 +1,12 @@
-package com.example.arbor.dto;
+package com.example.arbor.dto.response;
 
-import com.example.arbor.model.*;
+import com.example.arbor.model.CondicaoArvore;
+import com.example.arbor.model.RegistroArvore;
 
 import java.time.LocalDateTime;
 
 public record RegistroNovaArvoreResponseDTO(
-        Usuario pesquisador,
+        UsuarioResumoDTO pesquisador,
         LocalDateTime dataColeta,
         String especie,
         Double altura,
@@ -15,7 +16,7 @@ public record RegistroNovaArvoreResponseDTO(
 ) {
     public RegistroNovaArvoreResponseDTO(RegistroArvore registro) {
         this(
-                registro.getPesquisador(),
+                new UsuarioResumoDTO(registro.getPesquisador()),
                 registro.getDataColeta(),
                 registro.getEspecieNova(),
                 registro.getAlturaColetada(),
@@ -26,4 +27,3 @@ public record RegistroNovaArvoreResponseDTO(
         );
     }
 }
-

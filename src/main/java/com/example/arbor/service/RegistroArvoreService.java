@@ -1,6 +1,10 @@
 package com.example.arbor.service;
 
-import com.example.arbor.dto.*;
+import com.example.arbor.dto.request.RecusarRegistroRequestDTO;
+import com.example.arbor.dto.request.RegistroNovaArvoreRequestDTO;
+import com.example.arbor.dto.request.RegistroRequestDTO;
+import com.example.arbor.dto.response.RegistroNovaArvoreResponseDTO;
+import com.example.arbor.dto.response.RegistroResponseDTO;
 import com.example.arbor.model.*;
 import com.example.arbor.repository.ArvoreRepository;
 import com.example.arbor.repository.RegistroArvoreRepository;
@@ -15,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,7 +52,7 @@ public class RegistroArvoreService {
     }
 
     @Transactional
-    public RegistroResponseDTO aprovarRegistro(UUID registroId, AprovarRegistroRequestDTO dto) {
+    public RegistroResponseDTO aprovarRegistro(UUID registroId, Usuario admin) {
 
         RegistroArvore registro = registroRepository.findById(registroId)
                 .orElseThrow(() -> new RuntimeException("Registro não encontrado"));
@@ -56,12 +61,12 @@ public class RegistroArvoreService {
             throw new RuntimeException("Somente registros pendentes podem ser aprovados");
         }
 
-        Usuario admin = usuarioRepository.findById(dto.administrador().getId())
+        Usuario adminPersistido = usuarioRepository.findById(admin.getId())
                 .orElseThrow(() -> new RuntimeException("Administrador não encontrado"));
 
         registro.setStatus(StatusRegistro.APROVADO);
-        registro.setAdministradorResponsavel(admin);
-        registro.setDataAnalise(java.time.LocalDateTime.now());
+        registro.setAdministradorResponsavel(adminPersistido);
+        registro.setDataAnalise(LocalDateTime.now());
 
         if (registro.getArvore() == null) {
 
@@ -86,7 +91,7 @@ public class RegistroArvoreService {
     }
 
     @Transactional
-    public RegistroResponseDTO recusarRegistro(UUID registroId, RecusarRegistroRequestDTO dto) {
+    public RegistroResponseDTO recusarRegistro(UUID registroId, Usuario admin, RecusarRegistroRequestDTO dto) {
 
         RegistroArvore registro = registroRepository.findById(registroId)
                 .orElseThrow(() -> new RuntimeException("Registro não encontrado"));
@@ -95,21 +100,21 @@ public class RegistroArvoreService {
             throw new RuntimeException("Somente registros pendentes podem ser recusados");
         }
 
-        Usuario admin = usuarioRepository.findById(dto.administrador().getId())
+        Usuario adminPersistido = usuarioRepository.findById(admin.getId())
                 .orElseThrow(() -> new RuntimeException("Administrador não encontrado"));
 
         registro.setStatus(StatusRegistro.RECUSADO);
-        registro.setMotivoRecusa(dto.motivoRecusa()); //--> Verificar depois se mantém, ou transfere ação pra apenas notificação
-        registro.setAdministradorResponsavel(admin);
-        registro.setDataAnalise(java.time.LocalDateTime.now());
+        registro.setMotivoRecusa(dto.motivoRecusa());
+        registro.setAdministradorResponsavel(adminPersistido);
+        registro.setDataAnalise(LocalDateTime.now());
 
         return new RegistroResponseDTO(registroRepository.save(registro));
     }
 
     @Transactional
-    public RegistroResponseDTO cadastrar(RegistroRequestDTO dto) {
+    public RegistroResponseDTO cadastrar(RegistroRequestDTO dto, Usuario pesquisador) {
 
-        Usuario pesquisador = usuarioRepository.findById(dto.pesquisadorId())
+        Usuario pesquisadorPersistido = usuarioRepository.findById(pesquisador.getId())
                 .orElseThrow(() -> new RuntimeException("Pesquisador não encontrado"));
 
         Arvore arvore = arvoreRepository.findById(dto.arvoreId())
@@ -117,7 +122,7 @@ public class RegistroArvoreService {
 
 
         RegistroArvore registro = new RegistroArvore();
-        registro.setPesquisador(pesquisador);
+        registro.setPesquisador(pesquisadorPersistido);
         registro.setDataColeta(dto.dataColeta());
         registro.setArvore(arvore);
         registro.setStatus(StatusRegistro.PENDENTE);
@@ -128,9 +133,9 @@ public class RegistroArvoreService {
     }
 
     @Transactional
-    public RegistroNovaArvoreResponseDTO cadastrarNovaArvore(RegistroNovaArvoreRequestDTO dto) {
+    public RegistroNovaArvoreResponseDTO cadastrarNovaArvore(RegistroNovaArvoreRequestDTO dto, Usuario pesquisador) {
 
-        Usuario pesquisador = usuarioRepository.findById(dto.pesquisadorId())
+        Usuario pesquisadorPersistido = usuarioRepository.findById(pesquisador.getId())
                 .orElseThrow(() -> new RuntimeException("Pesquisador não encontrado"));
 
         GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
@@ -140,7 +145,7 @@ public class RegistroArvoreService {
         );
 
         RegistroArvore registro = new RegistroArvore();
-        registro.setPesquisador(pesquisador);
+        registro.setPesquisador(pesquisadorPersistido);
         registro.setDataColeta(dto.dataColeta());
         registro.setArvore(null);
         registro.setStatus(StatusRegistro.PENDENTE);
@@ -162,9 +167,8 @@ public class RegistroArvoreService {
         Usuario pesquisadorResponsavel = registro.getPesquisador();
 
         if (!pesquisadorResponsavel.getId().equals(executor.getId())
-                && executor.getPerfilAcesso() != Perfil.GESTOR
-                && executor.getPerfilAcesso() != Perfil.ADMINISTRADOR) {
-            throw new RuntimeException("Acesso negado: Apenas o pesquisador responsável, gestores ou administradores podem excluir registros.");
+                && executor.getPerfilAcesso() != Perfil.GESTOR) {
+            throw new RuntimeException("Acesso negado: Apenas o pesquisador responsável ou gestores podem excluir registros.");
         }
 
         registroRepository.delete(registro);
