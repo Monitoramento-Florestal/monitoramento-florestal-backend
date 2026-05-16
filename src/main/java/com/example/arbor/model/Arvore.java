@@ -37,4 +37,14 @@ public class Arvore {
 
     @OneToMany(mappedBy = "arvore", cascade = CascadeType.ALL)
     private List<RegistroArvore> registros = new ArrayList<>();
+
+    @Column(name = "bairro")
+    private String bairro;
+
+    @Column(name = "rua")
+    private String rua;
+
+    @Column(name = "referencia")
+    private String referencia;
+
 }
