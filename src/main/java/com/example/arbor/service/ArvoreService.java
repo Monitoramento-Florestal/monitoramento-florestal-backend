@@ -60,6 +60,11 @@ public class ArvoreService {
         arvore.setAlturaAtual(dto.altura());
         arvore.setCondicaoAtual(dto.condicao());
 
+        arvore.setBairro(dto.bairro());
+        arvore.setRua(dto.rua());
+        arvore.setReferencia(dto.referencia());
+        arvore.setUsuarioCadastro(executor);
+
         Point ponto = geometryFactory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
         arvore.setLocalizacao(ponto);
 
@@ -89,6 +94,10 @@ public class ArvoreService {
         arvore.setEspecie(dto.especie());
         arvore.setAlturaAtual(dto.altura());
         arvore.setCondicaoAtual(dto.condicao());
+
+        arvore.setBairro(dto.bairro());
+        arvore.setRua(dto.rua());
+        arvore.setReferencia(dto.referencia());
 
         Point ponto = geometryFactory.createPoint(
                 new Coordinate(dto.longitude(), dto.latitude())
