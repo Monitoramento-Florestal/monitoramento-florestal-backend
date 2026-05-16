@@ -36,17 +36,17 @@ public class RegistroArvoreController {
         return ResponseEntity.ok(registroService.filtrarPorStatus(status));
     }
 
-    @GetMapping("/pesquisador/{id}")
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
-    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorPesquisadorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(registroService.filtrarPorPesquisadorId(id));
+    @GetMapping("/pesquisador")
+    @PreAuthorize("hasRole('PESQUISADOR')")
+    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorPesquisador(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(registroService.filtrarPorPesquisadorId(usuario.getId()));
     }
 
-    @GetMapping("/status/{status}/pesquisador/{id}")
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
-    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorStatusAndPesquisadorId(@PathVariable StatusRegistro status,
-                                                                                    @PathVariable UUID id) {
-        return ResponseEntity.ok(registroService.filtrarPorStatusEPesquisadorId(status, id));
+    @GetMapping("/pesquisador/status/{status}")
+    @PreAuthorize("hasRole('PESQUISADOR')")
+    public ResponseEntity<List<RegistroResponseDTO>> filtrarPorStatusAndPesquisador(@PathVariable StatusRegistro status,
+                                                                                    @AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(registroService.filtrarPorStatusEPesquisadorId(status, usuario.getId()));
     }
 
     @GetMapping("/arvore/{id}")
