@@ -47,7 +47,4 @@ public class Arvore {
     @Column(name = "referencia")
     private String referencia;
 
-    @ManyToOne
-    @JoinColumn(name = "id_usuario_cadastro")
-    private Usuario usuarioCadastro;
 }
