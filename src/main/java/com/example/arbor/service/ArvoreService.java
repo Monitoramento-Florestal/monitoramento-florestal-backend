@@ -63,7 +63,6 @@ public class ArvoreService {
         arvore.setBairro(dto.bairro());
         arvore.setRua(dto.rua());
         arvore.setReferencia(dto.referencia());
-        arvore.setUsuarioCadastro(executor);
 
         Point ponto = geometryFactory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
         arvore.setLocalizacao(ponto);
