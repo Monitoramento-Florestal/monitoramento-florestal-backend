@@ -5,7 +5,6 @@ import com.example.arbor.dto.response.ArvoreResponseDTO;
 import com.example.arbor.model.CondicaoArvore;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.ArvoreService;
-import com.example.arbor.service.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,17 +14,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/arvores")
 @CrossOrigin(origins = "*")
 public class ArvoreController {
 
     private final ArvoreService arvoreService;
-    private final UsuarioService usuarioService;
 
-    public ArvoreController(ArvoreService arvoreService, UsuarioService usuarioService) {
+    public ArvoreController(ArvoreService arvoreService) {
         this.arvoreService = arvoreService;
-        this.usuarioService = usuarioService;
     }
 
     @GetMapping
@@ -55,7 +54,7 @@ public class ArvoreController {
     @PostMapping
     @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
     public ResponseEntity<ArvoreResponseDTO> cadastrar(
-            @RequestBody ArvoreRequestDTO dto,
+            @Valid @RequestBody ArvoreRequestDTO dto,
             @AuthenticationPrincipal Usuario usuarioLogado) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(arvoreService.salvar(dto, usuarioLogado));
@@ -73,10 +72,9 @@ public class ArvoreController {
     @PutMapping("/{id}")
     public ResponseEntity<ArvoreResponseDTO> atualizar(
             @PathVariable UUID id,
-            @RequestBody ArvoreRequestDTO dto,
-            @RequestHeader("executor-id") UUID executorId) {
+            @Valid @RequestBody ArvoreRequestDTO dto,
+            @AuthenticationPrincipal Usuario executor) {
 
-        Usuario executor = usuarioService.buscarEntidadePorId(executorId);
         return ResponseEntity.ok(arvoreService.atualizar(id, dto, executor));
     }
 }

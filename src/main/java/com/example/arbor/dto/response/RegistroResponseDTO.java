@@ -1,17 +1,20 @@
-package com.example.arbor.dto;
+package com.example.arbor.dto.response;
 
-import com.example.arbor.model.*;
+import com.example.arbor.model.Arvore;
+import com.example.arbor.model.CondicaoArvore;
+import com.example.arbor.model.RegistroArvore;
+import com.example.arbor.model.StatusRegistro;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record RegistroResponseDTO(
         UUID id,
-        Usuario pesquisador,
+        UsuarioResumoDTO pesquisador,
         LocalDateTime dataColeta,
         Arvore arvore,
         StatusRegistro status,
-        Usuario administradorResponsavel,
+        UsuarioResumoDTO administradorResponsavel,
         LocalDateTime dataAnalise,
         String motivoRecusa,
         Double altura,
@@ -20,11 +23,13 @@ public record RegistroResponseDTO(
     public RegistroResponseDTO(RegistroArvore registro){
         this(
                 registro.getId(),
-                registro.getPesquisador(),
+                new UsuarioResumoDTO(registro.getPesquisador()),
                 registro.getDataColeta(),
                 registro.getArvore(),
                 registro.getStatus(),
-                registro.getAdministradorResponsavel(),
+                registro.getAdministradorResponsavel() == null
+                        ? null
+                        : new UsuarioResumoDTO(registro.getAdministradorResponsavel()),
                 registro.getDataAnalise(),
                 registro.getMotivoRecusa(),
                 registro.getAlturaColetada(),

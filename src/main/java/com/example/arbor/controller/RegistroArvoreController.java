@@ -1,16 +1,23 @@
 package com.example.arbor.controller;
 
-import com.example.arbor.dto.*;
+import com.example.arbor.dto.request.AprovarRegistroRequestDTO;
+import com.example.arbor.dto.request.RecusarRegistroRequestDTO;
+import com.example.arbor.dto.request.RegistroNovaArvoreRequestDTO;
+import com.example.arbor.dto.request.RegistroRequestDTO;
+import com.example.arbor.dto.response.RegistroNovaArvoreResponseDTO;
+import com.example.arbor.dto.response.RegistroResponseDTO;
 import com.example.arbor.model.StatusRegistro;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.RegistroArvoreService;
-import com.example.arbor.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/registros")
@@ -18,61 +25,71 @@ import java.util.UUID;
 public class RegistroArvoreController {
 
     private final RegistroArvoreService registroService;
-    private final UsuarioService usuarioService;
 
-    public RegistroArvoreController(RegistroArvoreService registroService, UsuarioService usuarioService) {
+    public RegistroArvoreController(RegistroArvoreService registroService) {
         this.registroService = registroService;
-        this.usuarioService = usuarioService;
     }
 
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<RegistroResponseDTO>> filtrarPorStatus(@PathVariable StatusRegistro status) {
         return ResponseEntity.ok(registroService.filtrarPorStatus(status));
     }
 
     @GetMapping("/pesquisador")
+    @PreAuthorize("hasRole('PESQUISADOR')")
     public ResponseEntity<List<RegistroResponseDTO>> filtrarPorPesquisador(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(registroService.filtrarPorPesquisadorId(usuario.getId()));
     }
 
     @GetMapping("/pesquisador/status/{status}")
+    @PreAuthorize("hasRole('PESQUISADOR')")
     public ResponseEntity<List<RegistroResponseDTO>> filtrarPorStatusAndPesquisador(@PathVariable StatusRegistro status,
                                                                                     @AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(registroService.filtrarPorStatusEPesquisadorId(status, usuario.getId()));
     }
 
     @GetMapping("/arvore/{id}")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<RegistroResponseDTO>> filtrarPorArvoreId(@PathVariable UUID id) {
         return ResponseEntity.ok(registroService.filtrarPorArvore(id));
     }
 
     @PutMapping("/{id}/aprovar")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<RegistroResponseDTO> aprovar(@PathVariable UUID id,
-                                       @RequestBody AprovarRegistroRequestDTO dto){
-        return ResponseEntity.ok(registroService.aprovarRegistro(id, dto));
+                                       @RequestBody AprovarRegistroRequestDTO dto,
+                                       @AuthenticationPrincipal Usuario executor){
+        return ResponseEntity.ok(registroService.aprovarRegistro(id, executor));
     }
 
     @PutMapping("/{id}/recusar")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<RegistroResponseDTO> recusar(@PathVariable UUID id,
-                                       @RequestBody RecusarRegistroRequestDTO dto){
-        return ResponseEntity.ok(registroService.recusarRegistro(id, dto));
+                                       @RequestBody RecusarRegistroRequestDTO dto,
+                                       @AuthenticationPrincipal Usuario executor){
+        return ResponseEntity.ok(registroService.recusarRegistro(id, executor, dto));
     }
 
     @PostMapping
-    public ResponseEntity<RegistroResponseDTO> cadastrar(@RequestBody RegistroRequestDTO dto){
-        return ResponseEntity.ok(registroService.cadastrar(dto));
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
+    public ResponseEntity<RegistroResponseDTO> cadastrar(@Valid @RequestBody RegistroRequestDTO dto,
+                                                         @AuthenticationPrincipal Usuario executor){
+        return ResponseEntity.ok(registroService.cadastrar(dto, executor));
     }
 
     @PostMapping("/nova-arvore")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
     public ResponseEntity<RegistroNovaArvoreResponseDTO> cadastrarNovaArvore(
-            @RequestBody RegistroNovaArvoreRequestDTO dto){
-        return ResponseEntity.ok(registroService.cadastrarNovaArvore(dto));
+            @Valid @RequestBody RegistroNovaArvoreRequestDTO dto,
+            @AuthenticationPrincipal Usuario executor){
+        return ResponseEntity.ok(registroService.cadastrarNovaArvore(dto, executor));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
     public ResponseEntity<RegistroResponseDTO> deletar(@PathVariable UUID id,
-                                                       @RequestHeader("executor-id") UUID executorId){
-        Usuario executor = usuarioService.buscarEntidadePorId(executorId);
+                                                       @AuthenticationPrincipal Usuario executor){
         registroService.deletar(id, executor);
         return ResponseEntity.noContent().build();
     }
