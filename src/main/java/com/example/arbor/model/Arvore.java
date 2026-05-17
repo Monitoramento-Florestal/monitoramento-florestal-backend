@@ -47,4 +47,7 @@ public class Arvore {
     @Column(name = "referencia")
     private String referencia;
 
+    @Column(nullable = false)
+    private Boolean ativa = true;
+
 }

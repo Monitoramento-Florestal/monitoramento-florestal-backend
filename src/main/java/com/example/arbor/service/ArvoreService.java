@@ -26,25 +26,25 @@ public class ArvoreService {
     }
 
     public List<ArvoreResponseDTO> listarTodas() {
-        return repository.findAll().stream()
+        return repository.findByAtivaTrue().stream()
                 .map(ArvoreResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
     public ArvoreResponseDTO buscarPorId(UUID id) {
-        Arvore arvore = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Árvore não encontrada com o ID: " + id));
+        Arvore arvore = repository.findByIdAndAtivaTrue(id)
+                .orElseThrow(() -> new RuntimeException("Árvore ativa não encontrada com o ID: " + id));
         return new ArvoreResponseDTO(arvore);
     }
 
     public List<ArvoreResponseDTO> filtrarPorCondicao(CondicaoArvore condicao) {
-        return repository.findByCondicaoAtual(condicao).stream()
+        return repository.findByCondicaoAtualAndAtivaTrue(condicao).stream()
                 .map(ArvoreResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
     public List<ArvoreResponseDTO> buscarPorEspecie(String especie) {
-        return repository.findByEspecieContainingIgnoreCase(especie).stream()
+        return repository.findByEspecieContainingIgnoreCaseAndAtivaTrue(especie).stream()
                 .map(ArvoreResponseDTO::new)
                 .collect(Collectors.toList());
     }
@@ -76,9 +76,11 @@ public class ArvoreService {
             throw new RuntimeException("Acesso negado: Apenas gestores podem excluir registros.");
         }
 
-        Arvore arvore = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Árvore não encontrada"));
-        repository.delete(arvore);
+        Arvore arvore = repository.findByIdAndAtivaTrue(id)
+                .orElseThrow(() -> new RuntimeException("Árvore ativa não encontrada"));
+
+        arvore.setAtiva(false);
+        repository.save(arvore);
     }
 
     @Transactional
@@ -87,8 +89,8 @@ public class ArvoreService {
             throw new RuntimeException("Acesso negado: Público não pode atualizar árvores.");
         }
 
-        Arvore arvore = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Árvore não encontrada"));
+        Arvore arvore = repository.findByIdAndAtivaTrue(id)
+                .orElseThrow(() -> new RuntimeException("Árvore ativa não encontrada"));
 
         arvore.setEspecie(dto.especie());
         arvore.setAlturaAtual(dto.altura());
