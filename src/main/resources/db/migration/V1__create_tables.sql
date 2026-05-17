@@ -37,13 +37,13 @@ CREATE TABLE tb_registro_arvore (
 );
 
 
-CREATE TABLE tb_token_recuperacao (
+CREATE TABLE tb_token_reset_senha (
     id UUID PRIMARY KEY,
-    codigo VARCHAR(6) NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
     usuario_id UUID NOT NULL,
-    expiracao TIMESTAMP NOT NULL,
-    utilizado BOOLEAN NOT NULL DEFAULT false,
-    CONSTRAINT fk_token_recuperacao_usuario
+    data_expiracao TIMESTAMP NOT NULL,
+    usado BOOLEAN NOT NULL,
+    CONSTRAINT fk_usuario
         FOREIGN KEY (usuario_id)
         REFERENCES tb_usuario(id)
 );
