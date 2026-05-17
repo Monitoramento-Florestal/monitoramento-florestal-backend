@@ -2,7 +2,6 @@ package com.example.arbor.controller;
 
 import com.example.arbor.dto.request.ArvoreRequestDTO;
 import com.example.arbor.dto.response.ArvoreResponseDTO;
-import com.example.arbor.model.CondicaoArvore;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.ArvoreService;
 import org.springframework.http.HttpStatus;
@@ -45,12 +44,14 @@ public class ArvoreController {
         return ResponseEntity.ok(arvoreService.buscarPorEspecie(nome));
     }
 
+    //  REFATORAR O GET POR CONDIÇÕES
+/*
     @GetMapping("/condicao/{condicao}")
     @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<ArvoreResponseDTO>> filtrarPorCondicao(@PathVariable CondicaoArvore condicao) {
         return ResponseEntity.ok(arvoreService.filtrarPorCondicao(condicao));
     }
-
+*/
     @PostMapping
     @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
     public ResponseEntity<ArvoreResponseDTO> cadastrar(

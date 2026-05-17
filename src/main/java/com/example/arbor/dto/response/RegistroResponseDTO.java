@@ -1,39 +1,85 @@
 package com.example.arbor.dto.response;
 
 import com.example.arbor.model.Arvore;
-import com.example.arbor.model.CondicaoArvore;
+import com.example.arbor.model.Conflito;
+import com.example.arbor.model.Manejo;
 import com.example.arbor.model.RegistroArvore;
-import com.example.arbor.model.StatusRegistro;
+import com.example.arbor.model.enums.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 public record RegistroResponseDTO(
         UUID id,
-        UsuarioResumoDTO pesquisador,
+        UsuarioResponseDTO pesquisador,
         LocalDateTime dataColeta,
-        Arvore arvore,
-        StatusRegistro status,
-        UsuarioResumoDTO administradorResponsavel,
+        ArvoreResponseDTO arvore,
+        UsuarioResponseDTO administradorResponsavel,
         LocalDateTime dataAnalise,
         String motivoRecusa,
-        Double altura,
-        CondicaoArvore condicao
+        StatusRegistro status,
+        Double alturaColetada,
+        Double dapColetada,
+        Double copaColetada,
+        EstadoGeral estadoGeral,
+        Vigor vigor,
+        Set<Problema> problemasCopa,
+        Set<Problema> problemasTronco,
+        Set<Problema> problemasRaiz,
+        EstruturaTronco estruturaTronco,
+        EstruturaBase estruturaBase,
+        EstruturaCopa estruturaCopa,
+        InclinacaoTronco inclinacaoTronco,
+        AncoragemRadicular ancoragem,
+        FluxoPedestre fluxoPedestre,
+        FluxoAutomovel fluxoAutomovel,
+        TipoVia tipoVia,
+        Set<AlvoPotencial> alvosPotenciais,
+        Set<AlvoSensivel> alvosSensiveis,
+        Conflito conflito,
+        Manejo manejo,
+        String observacoes
 ) {
     public RegistroResponseDTO(RegistroArvore registro){
         this(
                 registro.getId(),
-                new UsuarioResumoDTO(registro.getPesquisador()),
+                new UsuarioResponseDTO(registro.getPesquisador()),
                 registro.getDataColeta(),
-                registro.getArvore(),
-                registro.getStatus(),
+                registro.getArvore() == null
+                        ? null
+                        : new ArvoreResponseDTO(registro.getArvore()),
+
                 registro.getAdministradorResponsavel() == null
                         ? null
-                        : new UsuarioResumoDTO(registro.getAdministradorResponsavel()),
+                        : new UsuarioResponseDTO(registro.getAdministradorResponsavel()),
                 registro.getDataAnalise(),
                 registro.getMotivoRecusa(),
+                registro.getStatus(),
+
                 registro.getAlturaColetada(),
-                registro.getCondicaoColetada()
+                registro.getDapColetada(),
+                registro.getCopaColetada(),
+
+                registro.getEstadoGeral(),
+                registro.getVigor(),
+                registro.getProblemasCopa(),
+                registro.getProblemasTronco(),
+                registro.getProblemasRaiz(),
+
+                registro.getEstruturaTronco(),
+                registro.getEstruturaBase(),
+                registro.getEstruturaCopa(),
+                registro.getInclinacao(),
+                registro.getAncoragem(),
+                registro.getFluxoPedestre(),
+                registro.getFluxoAutomovel(),
+                registro.getTipoVia(),
+                registro.getAlvosPotenciais(),
+                registro.getAlvosSensiveis(),
+                registro.getConflito(),
+                registro.getManejo(),
+                registro.getObservacoes()
         );
     }
 }

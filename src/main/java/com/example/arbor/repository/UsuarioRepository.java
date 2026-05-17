@@ -1,6 +1,6 @@
 package com.example.arbor.repository;
 
-import com.example.arbor.model.Perfil;
+import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

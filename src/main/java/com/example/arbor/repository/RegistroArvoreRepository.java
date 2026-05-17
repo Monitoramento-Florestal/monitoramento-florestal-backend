@@ -1,7 +1,7 @@
 package com.example.arbor.repository;
 
 import com.example.arbor.model.RegistroArvore;
-import com.example.arbor.model.StatusRegistro;
+import com.example.arbor.model.enums.StatusRegistro;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
