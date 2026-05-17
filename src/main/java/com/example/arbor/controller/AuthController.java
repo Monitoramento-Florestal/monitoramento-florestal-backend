@@ -1,9 +1,7 @@
 package com.example.arbor.controller;
 
-import com.example.arbor.dto.request.EsqueciSenhaRequestDTO;
 import com.example.arbor.dto.request.LoginRequestDTO;
 import com.example.arbor.dto.request.RefreshRequestDTO;
-import com.example.arbor.dto.request.ResetarSenhaRequestDTO;
 import com.example.arbor.dto.response.LoginResponseDTO;
 import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
