@@ -128,4 +128,7 @@ public class Arvore {
     @Column(name = "observacoes")
     private String observacoes;
 
+    @Column(nullable = false)
+    private Boolean ativa = true;
+
 }

@@ -119,8 +119,8 @@ public class RegistroArvoreService {
         Usuario pesquisadorPersistido = usuarioRepository.findById(pesquisador.getId())
                 .orElseThrow(() -> new RuntimeException("Pesquisador não encontrado"));
 
-        Arvore arvore = arvoreRepository.findById(dto.arvoreId())
-                .orElseThrow(() -> new RuntimeException("Árvore não encontrada"));
+        Arvore arvore = arvoreRepository.findByIdAndAtivaTrue(dto.arvoreId())
+                .orElseThrow(() -> new RuntimeException("Árvore ativa não encontrada"));
 
 
         RegistroArvore registro = new RegistroArvore();

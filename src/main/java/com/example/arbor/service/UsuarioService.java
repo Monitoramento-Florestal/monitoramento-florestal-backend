@@ -41,26 +41,42 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Executor não encontrado."));
     }
 
-    public List<UsuarioResponseDTO> listarTodos() {
-        return repository.findAll().stream()
+    public List<UsuarioResponseDTO> listarTodos(Boolean ativo, Usuario executor) {
+        List<Usuario> usuarios;
+
+        if (executor.getPerfilAcesso() == Perfil.GESTOR) {
+            usuarios = ativo == null ? repository.findAll() : repository.findByAtivo(ativo);
+        } else {
+            usuarios = repository.findByAtivo(true);
+        }
+
+        return usuarios.stream()
                 .map(UsuarioResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
-    public UsuarioResponseDTO buscarPorId(UUID id) {
+    public UsuarioResponseDTO buscarPorId(UUID id, Usuario executor) {
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+
+        validarVisibilidade(usuario, executor);
+
         return new UsuarioResponseDTO(usuario);
     }
 
-    public UsuarioResponseDTO buscarPorEmail(String email) {
-        return repository.findByEmail(email)
-                .map(UsuarioResponseDTO::new)
+    public UsuarioResponseDTO buscarPorEmail(String email, Usuario executor) {
+        Usuario usuario = repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário com e-mail " + email + " não encontrado."));
+
+        validarVisibilidade(usuario, executor);
+
+        return new UsuarioResponseDTO(usuario);
     }
 
-    public List<UsuarioResponseDTO> buscarPorPerfil(Perfil perfil) {
-        List<Usuario> usuarios = repository.findByPerfilAcesso(perfil);
+    public List<UsuarioResponseDTO> buscarPorPerfil(Perfil perfil, Boolean ativo) {
+        List<Usuario> usuarios = ativo == null
+                ? repository.findByPerfilAcesso(perfil)
+                : repository.findByPerfilAcessoAndAtivo(perfil, ativo);
         return usuarios.stream()
                 .map(UsuarioResponseDTO::new)
                 .collect(Collectors.toList());
@@ -122,6 +138,7 @@ public class UsuarioService {
         usuario.setEmail(dto.email());
         usuario.setSenha(passwordEncoder.encode(dto.senha()));
         usuario.setPerfilAcesso(dto.perfilAcesso());
+        usuario.setAtivo(true);
 
         return new UsuarioResponseDTO(repository.save(usuario));
     }
@@ -134,6 +151,15 @@ public class UsuarioService {
 
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
-        repository.delete(usuario);
+        usuario.setAtivo(false);
+        int refreshTokenVersion = usuario.getRefreshTokenVersion() == null ? 0 : usuario.getRefreshTokenVersion();
+        usuario.setRefreshTokenVersion(refreshTokenVersion + 1);
+        repository.save(usuario);
+    }
+
+    private void validarVisibilidade(Usuario usuario, Usuario executor) {
+        if (Boolean.FALSE.equals(usuario.getAtivo()) && executor.getPerfilAcesso() != Perfil.GESTOR) {
+            throw new RuntimeException("Usuário não encontrado.");
+        }
     }
 }

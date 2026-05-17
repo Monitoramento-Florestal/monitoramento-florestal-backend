@@ -28,26 +28,34 @@ public class UsuarioController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
-    public ResponseEntity<List<UsuarioResponseDTO>> listarTodos() {
-        return ResponseEntity.ok(service.listarTodos());
+    public ResponseEntity<List<UsuarioResponseDTO>> listarTodos(
+            @RequestParam(required = false) Boolean ativo,
+            @AuthenticationPrincipal Usuario executor) {
+        return ResponseEntity.ok(service.listarTodos(ativo, executor));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR') or #id == authentication.principal.id")
-    public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.buscarPorId(id));
+    public ResponseEntity<UsuarioResponseDTO> buscarPorId(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Usuario executor) {
+        return ResponseEntity.ok(service.buscarPorId(id, executor));
     }
 
     @GetMapping("/email")
     @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
-    public ResponseEntity<UsuarioResponseDTO> buscarPorEmail(@RequestParam String email) {
-        return ResponseEntity.ok(service.buscarPorEmail(email));
+    public ResponseEntity<UsuarioResponseDTO> buscarPorEmail(
+            @RequestParam String email,
+            @AuthenticationPrincipal Usuario executor) {
+        return ResponseEntity.ok(service.buscarPorEmail(email, executor));
     }
 
     @GetMapping("/perfil/{perfil}")
     @PreAuthorize("hasRole('GESTOR')")
-    public ResponseEntity<List<UsuarioResponseDTO>> listarPorPerfil(@PathVariable Perfil perfil) {
-        return ResponseEntity.ok(service.buscarPorPerfil(perfil));
+    public ResponseEntity<List<UsuarioResponseDTO>> listarPorPerfil(
+            @PathVariable Perfil perfil,
+            @RequestParam(required = false) Boolean ativo) {
+        return ResponseEntity.ok(service.buscarPorPerfil(perfil, ativo));
     }
 
     @PostMapping
