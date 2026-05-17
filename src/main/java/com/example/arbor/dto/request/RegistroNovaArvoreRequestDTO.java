@@ -1,15 +1,39 @@
 package com.example.arbor.dto.request;
 
-import com.example.arbor.model.CondicaoArvore;
+import com.example.arbor.model.Conflito;
+import com.example.arbor.model.Manejo;
+import com.example.arbor.model.enums.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 
 public record RegistroNovaArvoreRequestDTO(
-        @NotNull LocalDateTime dataColeta,
-        @NotNull String especie,
-        @NotNull Double altura,
-        @NotNull CondicaoArvore condicao,
-        @NotNull Double latitude,
-        @NotNull Double longitude
+
+        @NotBlank String especie,
+        @NotBlank String bairro,
+        @NotBlank String rua,
+        String referencia,
+        @NotNull Double alturaColetada,
+        @NotNull Double dapColetada,
+        @NotNull Double copaColetada,
+        @NotNull EstadoGeral estadoGeral,
+        @NotNull Vigor vigor,
+        @NotNull Set<Problema> problemasCopa,
+        @NotNull Set<Problema> problemasTronco,
+        @NotNull Set<Problema> problemasRaiz,
+        @NotNull EstruturaTronco estruturaTronco,
+        @NotNull EstruturaBase estruturaBase,
+        @NotNull EstruturaCopa estruturaCopa,
+        @NotNull InclinacaoTronco inclinacaoTronco,
+        @NotNull AncoragemRadicular ancoragem,
+        @NotNull FluxoPedestre fluxoPedestre,
+        @NotNull FluxoAutomovel fluxoAutomovel,
+        @NotNull TipoVia tipoVia,
+        @NotNull Set<AlvoPotencial> alvosPotenciais,
+        @NotNull Set<AlvoSensivel> alvosSensiveis,
+        @NotNull Conflito conflito,
+        @NotNull Manejo manejo,
+        String observacoes
+
 ) {}

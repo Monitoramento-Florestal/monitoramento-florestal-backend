@@ -1,6 +1,6 @@
 package com.example.arbor.config;
 
-import com.example.arbor.model.Perfil;
+import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;

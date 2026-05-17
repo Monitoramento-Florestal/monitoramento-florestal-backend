@@ -6,7 +6,7 @@ import com.example.arbor.dto.request.RegistroNovaArvoreRequestDTO;
 import com.example.arbor.dto.request.RegistroRequestDTO;
 import com.example.arbor.dto.response.RegistroNovaArvoreResponseDTO;
 import com.example.arbor.dto.response.RegistroResponseDTO;
-import com.example.arbor.model.StatusRegistro;
+import com.example.arbor.model.enums.StatusRegistro;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.RegistroArvoreService;
 import org.springframework.http.ResponseEntity;

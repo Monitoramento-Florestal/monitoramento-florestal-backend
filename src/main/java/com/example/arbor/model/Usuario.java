@@ -1,5 +1,6 @@
 package com.example.arbor.model;
 
+import com.example.arbor.model.enums.Perfil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;

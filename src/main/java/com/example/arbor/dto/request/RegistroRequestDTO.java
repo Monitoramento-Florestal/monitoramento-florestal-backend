@@ -1,14 +1,36 @@
 package com.example.arbor.dto.request;
 
-import com.example.arbor.model.CondicaoArvore;
+import com.example.arbor.model.Conflito;
+import com.example.arbor.model.Manejo;
+import com.example.arbor.model.enums.*;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 public record RegistroRequestDTO(
-        @NotNull LocalDateTime dataColeta,
+
         @NotNull UUID arvoreId,
-        @NotNull Double altura,
-        @NotNull CondicaoArvore condicao
+        @NotNull Double alturaColetada,
+        @NotNull Double dapColetada,
+        @NotNull Double copaColetada,
+        @NotNull EstadoGeral estadoGeral,
+        @NotNull Vigor vigor,
+        @NotNull Set<Problema> problemasCopa,
+        @NotNull Set<Problema> problemasTronco,
+        @NotNull Set<Problema> problemasRaiz,
+        @NotNull EstruturaTronco estruturaTronco,
+        @NotNull EstruturaBase estruturaBase,
+        @NotNull EstruturaCopa estruturaCopa,
+        @NotNull InclinacaoTronco inclinacaoTronco,
+        @NotNull AncoragemRadicular ancoragem,
+        @NotNull FluxoPedestre fluxoPedestre,
+        @NotNull FluxoAutomovel fluxoAutomovel,
+        @NotNull TipoVia tipoVia,
+        @NotNull Set<AlvoPotencial> alvosPotenciais,
+        @NotNull Set<AlvoSensivel> alvosSensiveis,
+        @NotNull Conflito conflito,
+        @NotNull Manejo manejo,
+        String observacoes
+
 ) {}

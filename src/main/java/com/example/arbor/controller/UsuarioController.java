@@ -2,7 +2,7 @@ package com.example.arbor.controller;
 
 import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
-import com.example.arbor.model.Perfil;
+import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.UsuarioService;
 import org.springframework.http.HttpStatus;
