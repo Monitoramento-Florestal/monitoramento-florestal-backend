@@ -3,6 +3,7 @@ package com.example.arbor.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
 
 public record RedefinirSenhaDTO(
         @NotBlank @Size(min = 6, max = 6) String codigo,
