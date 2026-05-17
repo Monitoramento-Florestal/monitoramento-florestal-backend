@@ -1,4 +1,7 @@
 package com.example.arbor.dto.request;
 
-public record RefreshRequestDTO(String refreshToken) {
+import jakarta.validation.constraints.NotBlank;
+
+public record RefreshRequestDTO(
+        @NotBlank String refreshToken) {
 }
