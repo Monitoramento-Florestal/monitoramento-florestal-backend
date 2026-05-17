@@ -106,18 +106,6 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponseDTO(novoAccessToken, novoRefreshToken, usuario.getEmail(), usuario.getNome()));
     }
 
-    @PostMapping("/esqueci-senha")
-    public ResponseEntity<String> esqueciSenha(@Valid @RequestBody EsqueciSenhaRequestDTO dto) {
-        usuarioService.solicitarResetSenha(dto.email());
-        return ResponseEntity.ok("As instruções serão enviadas se o e-mail estiver vinculado a uma conta.");
-    }
-
-    @PostMapping("/resetar-senha")
-    public ResponseEntity<String> resetarSenha(@Valid @RequestBody ResetarSenhaRequestDTO dto) {
-        usuarioService.resetarSenha(dto.token(), dto.novaSenha());
-        return ResponseEntity.ok("Senha atualizada com sucesso");
-    }
-
     @PostMapping("/registrar")
     public ResponseEntity<UsuarioResponseDTO> registrar(@Valid @RequestBody UsuarioRequestDTO dto) {
         UsuarioResponseDTO response = usuarioService.salvar(dto, null);
