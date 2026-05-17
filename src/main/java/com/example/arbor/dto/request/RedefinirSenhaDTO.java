@@ -6,7 +6,8 @@ import jakarta.validation.constraints.Size;
 
 public record RedefinirSenhaDTO(
         @NotBlank @Size(min = 6, max = 6) String codigo,
-
+        @NotBlank @Email String email,
+        
         @NotBlank
         @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.")
         @Pattern(
