@@ -4,8 +4,8 @@ import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
 import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
-import com.example.arbor.model.TokenResetSenha;
-import com.example.arbor.repository.TokenResetSenhaRepository;
+import com.example.arbor.model.TokenRecuperacao;
+import com.example.arbor.repository.TokenRecuperacaoRepository;
 import com.example.arbor.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,17 +22,17 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
-    private final TokenResetSenhaRepository tokenResetSenhaRepository;
+    private final TokenRecuperacaoRepository TokenRecuperacaoRepository;
     private final EmailService emailService;
 
     public UsuarioService(
             UsuarioRepository repository,
             PasswordEncoder passwordEncoder,
-            TokenResetSenhaRepository tokenResetSenhaRepository,
+            TokenRecuperacaoRepository TokenRecuperacaoRepository,
             EmailService emailService) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
-        this.tokenResetSenhaRepository = tokenResetSenhaRepository;
+        this.TokenRecuperacaoRepository = TokenRecuperacaoRepository;
         this.emailService = emailService;
     }
 
