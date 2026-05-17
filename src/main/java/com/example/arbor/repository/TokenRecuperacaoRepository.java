@@ -13,5 +13,7 @@ public interface TokenRecuperacaoRepository extends JpaRepository<TokenRecuperac
 
     Optional<TokenRecuperacao> findByCodigoAndUtilizadoFalse(String codigo);
 
+    Optional<TokenRecuperacao> findByCodigoAndUsuario_EmailAndUtilizadoFalse(String codigo, String email);
+
     void deleteByUsuario(Usuario usuario);
 }
