@@ -6,12 +6,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
 
-    List<Arvore> findByCondicaoAtual(CondicaoArvore condicao);
+    List<Arvore> findByAtivaTrue();
 
-    List<Arvore> findByEspecieContainingIgnoreCase(String especie);
+    Optional<Arvore> findByIdAndAtivaTrue(UUID id);
+
+    List<Arvore> findByCondicaoAtualAndAtivaTrue(CondicaoArvore condicao);
+
+    List<Arvore> findByEspecieContainingIgnoreCaseAndAtivaTrue(String especie);
 }

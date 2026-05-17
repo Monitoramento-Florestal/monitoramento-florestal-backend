@@ -76,7 +76,7 @@ public class JwtService {
 
     public boolean isTokenValido(String token, UserDetails userDetails) {
         final String username = extrairUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpirado(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpirado(token) && userDetails.isEnabled();
     }
 
     /** Retorna true se o token contem a claim type=refresh. */
