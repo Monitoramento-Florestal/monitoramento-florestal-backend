@@ -82,43 +82,6 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
-    public void solicitarResetSenha(String email) {
-        Optional<Usuario> userOpt = repository.findByEmail(email);
-
-        if (userOpt.isEmpty()) return;
-
-        Usuario usuario = userOpt.get();
-
-        TokenResetSenha token = new TokenResetSenha();
-        token.setToken(UUID.randomUUID().toString());
-        token.setUsuario(usuario);
-        token.setDataExpiracao(LocalDateTime.now().plusMinutes(30));
-        token.setUsado(false);
-
-        tokenResetSenhaRepository.save(token);
-
-        emailService.enviarEmailReset(usuario.getEmail(), token.getToken());
-    }
-
-    public void resetarSenha(String tokenStr, String novaSenha) {
-
-        TokenResetSenha token = tokenResetSenhaRepository
-                .findByTokenAndUsadoFalse(tokenStr)
-                .orElseThrow(() -> new RuntimeException("Token inválido ou já usado"));
-
-        if (token.getDataExpiracao().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expirado");
-        }
-
-        Usuario usuario = token.getUsuario();
-
-        usuario.setSenha(passwordEncoder.encode(novaSenha));
-        repository.save(usuario);
-
-        token.setUsado(true);
-        tokenResetSenhaRepository.save(token);
-    }
-
     @Transactional
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto, Usuario executor) {
         if (dto.perfilAcesso() == Perfil.ADMINISTRADOR
