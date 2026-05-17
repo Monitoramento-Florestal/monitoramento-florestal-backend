@@ -1,4 +1,4 @@
-package com.example.arbor.dto.response;
+package com.example.arbor.dto.resumo;
 
 import com.example.arbor.model.Perfil;
 import com.example.arbor.model.Usuario;

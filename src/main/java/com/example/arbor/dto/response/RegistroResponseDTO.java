@@ -1,5 +1,6 @@
 package com.example.arbor.dto.response;
 
+import com.example.arbor.dto.resumo.UsuarioResumoDTO;
 import com.example.arbor.model.Arvore;
 import com.example.arbor.model.CondicaoArvore;
 import com.example.arbor.model.RegistroArvore;
