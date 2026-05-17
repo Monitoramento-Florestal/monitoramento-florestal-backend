@@ -33,6 +33,15 @@ public class GlobalValidationExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(RequisicaoInvalidaException.class)
+    public ResponseEntity<Map<String, Object>> handleRequisicaoInvalida(RequisicaoInvalidaException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "status", 400,
+                "erro", ex.getMessage(),
+                "timestamp", Instant.now().toString()
+        ));
+    }
+
     private String getValidationMessage(FieldError fieldError) {
         String defaultMessage = fieldError.getDefaultMessage();
         return defaultMessage != null ? defaultMessage : "Valor inválido";
