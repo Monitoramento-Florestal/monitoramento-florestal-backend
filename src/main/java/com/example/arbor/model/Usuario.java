@@ -45,6 +45,9 @@ public class Usuario implements UserDetails {
     @Column(name = "refresh_token_version")
     private Integer refreshTokenVersion = 0;
 
+    @Column(nullable = false)
+    private Boolean ativo = true;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + perfilAcesso.name()));
@@ -77,6 +80,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return Boolean.TRUE.equals(this.ativo);
     }
 }
