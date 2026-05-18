@@ -41,6 +41,7 @@ public class SecurityConfig {
                         // Rotas públicas (não precisam de token):
                         .requestMatchers(
                                 "/api/auth/**", // login e registro
+                                "/api/recuperar-senha/**", // recuperação de senha
                                 "/swagger-ui/**", // documentação
                                 "/v3/api-docs/**" // spec OpenAPI
                         ).permitAll()

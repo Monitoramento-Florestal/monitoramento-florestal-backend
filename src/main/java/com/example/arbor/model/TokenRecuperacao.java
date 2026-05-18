@@ -7,28 +7,27 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tb_token_reset_senha")
+@Table(name = "tb_token_recuperacao")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = "id")
-public class TokenResetSenha {
+public class TokenRecuperacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String token;
+    @Column(nullable = false, length = 6)
+    private String codigo;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "data_expiracao", nullable = false)
-    private LocalDateTime dataExpiracao;
+    @Column(nullable = false)
+    private LocalDateTime expiracao;
 
-    @Column(name = "usado", nullable = false)
-    private Boolean usado = false;
+    @Column(nullable = false)
+    private boolean utilizado = false;
 }
