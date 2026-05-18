@@ -47,8 +47,9 @@ public class RegistroArvoreService {
                 .map(RegistroResponseDTO::new).collect(Collectors.toList());
     }
 
-    public List<RegistroResponseDTO> filtrarPorArvore(UUID id){
-        return registroRepository.findByArvoreId(id).stream()
+    public List<RegistroResponseDTO> filtrarPorArvore(UUID id) {
+        return registroRepository
+                .findByArvoreIdOrderByDataColetaDesc(id).stream()
                 .map(RegistroResponseDTO::new).collect(Collectors.toList());
     }
 
