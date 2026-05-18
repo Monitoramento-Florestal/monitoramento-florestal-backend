@@ -4,6 +4,9 @@ import com.example.arbor.dto.request.ArvoreRequestDTO;
 import com.example.arbor.dto.response.ArvoreResponseDTO;
 import com.example.arbor.model.*;
 import com.example.arbor.model.enums.Perfil;
+import com.example.arbor.model.enums.EstadoGeral;
+import com.example.arbor.model.enums.Problema;
+import com.example.arbor.model.enums.Vigor;
 import com.example.arbor.repository.ArvoreRepository;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -49,6 +52,27 @@ public class ArvoreService {
                 .map(ArvoreResponseDTO::new)
                 .collect(Collectors.toList());
     }
+
+    public List<Arvore> buscarPorEstadoGeral(EstadoGeral estadoGeral) {
+        return repository.findByEstadoGeralAndAtivaTrue(estadoGeral);
+    }
+
+    public List<Arvore> buscarPorVigor(Vigor vigor) {
+        return repository.findByVigorAndAtivaTrue(vigor);
+    }
+
+    public List<Arvore> buscarPorProblemaCopa(Problema problema) {
+        return repository.findByProblemasCopaContainingAndAtivaTrue(problema);
+    }
+
+    public List<Arvore> buscarPorProblemaTronco(Problema problema) {
+        return repository.findByProblemasTroncoContainingAndAtivaTrue(problema);
+    }
+
+    public List<Arvore> buscarPorProblemaRaiz(Problema problema) {
+        return repository.findByProblemasRaizContainingAndAtivaTrue(problema);
+    }
+
 // Visto que o fluxo de cadastro de arvores é via RegistroArvore quando se trata de pesquisadores
 // Mas nosso sistema permite o cadastro realizado por administradores, seria melhor futuramente
 // Reservar esse fluxo dessa classe para eles, sendo assim nem pesquisadores nem o publico teria essa permissão
