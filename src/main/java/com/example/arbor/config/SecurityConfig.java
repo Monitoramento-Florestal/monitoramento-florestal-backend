@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.Customizer;
 
 @Configuration
 @EnableWebSecurity
@@ -40,9 +41,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Rotas públicas (não precisam de token):
                         .requestMatchers(
-                                "/api/auth/**", // login e registro
-                                "/swagger-ui/**", // documentação
-                                "/v3/api-docs/**" // spec OpenAPI
+                                "/api/auth/**",
+                                "/api/recuperar-senha/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         // Tudo o mais exige autenticação:
                         .anyRequest().authenticated())

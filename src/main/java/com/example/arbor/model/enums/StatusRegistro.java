@@ -1,4 +1,4 @@
-package com.example.arbor.model;
+package com.example.arbor.model.enums;
 
 public enum StatusRegistro {
     APROVADO,

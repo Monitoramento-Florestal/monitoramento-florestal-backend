@@ -1,6 +1,6 @@
 package com.example.arbor.dto.resumo;
 
-import com.example.arbor.model.Perfil;
+import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
 
 import java.util.UUID;

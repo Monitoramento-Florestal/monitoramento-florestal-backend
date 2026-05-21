@@ -3,6 +3,7 @@ package com.example.arbor.service;
 import com.example.arbor.dto.request.ArvoreRequestDTO;
 import com.example.arbor.dto.response.ArvoreResponseDTO;
 import com.example.arbor.model.*;
+import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.repository.ArvoreRepository;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -37,18 +38,20 @@ public class ArvoreService {
         return new ArvoreResponseDTO(arvore);
     }
 
-    public List<ArvoreResponseDTO> filtrarPorCondicao(CondicaoArvore condicao) {
-        return repository.findByCondicaoAtualAndAtivaTrue(condicao).stream()
-                .map(ArvoreResponseDTO::new)
-                .collect(Collectors.toList());
-    }
+//    public List<ArvoreResponseDTO> filtrarPorCondicao(CondicaoArvore condicao) {
+//        return repository.findByCondicaoAtual(condicao).stream()
+//                .map(ArvoreResponseDTO::new)
+//                .collect(Collectors.toList());
+//    }
 
     public List<ArvoreResponseDTO> buscarPorEspecie(String especie) {
         return repository.findByEspecieContainingIgnoreCaseAndAtivaTrue(especie).stream()
                 .map(ArvoreResponseDTO::new)
                 .collect(Collectors.toList());
     }
-
+// Visto que o fluxo de cadastro de arvores é via RegistroArvore quando se trata de pesquisadores
+// Mas nosso sistema permite o cadastro realizado por administradores, seria melhor futuramente
+// Reservar esse fluxo dessa classe para eles, sendo assim nem pesquisadores nem o publico teria essa permissão
     @Transactional
     public ArvoreResponseDTO salvar(ArvoreRequestDTO dto, Usuario executor) {
         if (executor.getPerfilAcesso() == Perfil.PUBLICO_GERAL) {
@@ -57,15 +60,10 @@ public class ArvoreService {
 
         Arvore arvore = new Arvore();
         arvore.setEspecie(dto.especie());
-        arvore.setAlturaAtual(dto.altura());
-        arvore.setCondicaoAtual(dto.condicao());
-
         arvore.setBairro(dto.bairro());
         arvore.setRua(dto.rua());
         arvore.setReferencia(dto.referencia());
-
-        Point ponto = geometryFactory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
-        arvore.setLocalizacao(ponto);
+        atributos_arvore(dto, arvore);
 
         return new ArvoreResponseDTO(repository.save(arvore));
     }
@@ -92,19 +90,32 @@ public class ArvoreService {
         Arvore arvore = repository.findByIdAndAtivaTrue(id)
                 .orElseThrow(() -> new RuntimeException("Árvore ativa não encontrada"));
 
-        arvore.setEspecie(dto.especie());
-        arvore.setAlturaAtual(dto.altura());
-        arvore.setCondicaoAtual(dto.condicao());
-
-        arvore.setBairro(dto.bairro());
-        arvore.setRua(dto.rua());
-        arvore.setReferencia(dto.referencia());
-
-        Point ponto = geometryFactory.createPoint(
-                new Coordinate(dto.longitude(), dto.latitude())
-        );
-        arvore.setLocalizacao(ponto);
+        atributos_arvore(dto, arvore);
 
         return new ArvoreResponseDTO(repository.save(arvore));
+    }
+
+    private void atributos_arvore(ArvoreRequestDTO dto, Arvore arvore) {
+        arvore.setAlturaAtual(dto.alturaAtual());
+        arvore.setDapAtual(dto.dapAtual());
+        arvore.setCopaAtual(dto.copaAtual());
+        arvore.setEstadoGeral(dto.estadoGeral());
+        arvore.setVigor(dto.vigor());
+        arvore.setProblemasCopa(dto.problemasCopa());
+        arvore.setProblemasRaiz(dto.problemasRaiz());
+        arvore.setProblemasTronco(dto.problemasTronco());
+        arvore.setEstruturaTronco(dto.estruturaTronco());
+        arvore.setEstruturaBase(dto.estruturaBase());
+        arvore.setEstruturaCopa(dto.estruturaCopa());
+        arvore.setInclinacao(dto.inclinacao());
+        arvore.setAncoragem(dto.ancoragem());
+        arvore.setFluxoAutomovel(dto.fluxoAutomovel());
+        arvore.setFluxoPedestre(dto.fluxoPedestre());
+        arvore.setTipoVia(dto.tipoVia());
+        arvore.setAlvosPotenciais(dto.alvosPotenciais());
+        arvore.setAlvosSensiveis(dto.alvosSensiveis());
+        arvore.setConflito(dto.conflito());
+        arvore.setManejo(dto.manejo());
+        arvore.setObservacoes(dto.observacoes());
     }
 }
