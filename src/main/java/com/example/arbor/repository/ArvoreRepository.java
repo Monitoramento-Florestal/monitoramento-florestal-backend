@@ -1,6 +1,9 @@
 package com.example.arbor.repository;
 
 import com.example.arbor.model.Arvore;
+import com.example.arbor.model.enums.EstadoGeral;
+import com.example.arbor.model.enums.Problema;
+import com.example.arbor.model.enums.Vigor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,4 +23,21 @@ public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
     //List<Arvore> findByCondicaoAtualAndAtivaTrue(CondicaoArvore condicao);
 
     List<Arvore> findByEspecieContainingIgnoreCaseAndAtivaTrue(String especie);
+
+    List<Arvore> findByEstadoGeralAndAtivaTrue(EstadoGeral estadoGeral);
+
+    List<Arvore> findByVigorAndAtivaTrue(Vigor vigor);
+
+    List<Arvore> findByProblemasCopaContainingAndAtivaTrue(Problema problema);
+
+    List<Arvore> findByProblemasTroncoContainingAndAtivaTrue(Problema problema);
+
+    List<Arvore> findByProblemasRaizContainingAndAtivaTrue(Problema problema);
+
+
+
+
+
+
+
 }

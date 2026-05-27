@@ -3,6 +3,10 @@ package com.example.arbor.controller;
 import com.example.arbor.dto.request.ArvoreRequestDTO;
 import com.example.arbor.dto.response.ArvoreResponseDTO;
 import com.example.arbor.model.Usuario;
+import com.example.arbor.model.Arvore;
+import com.example.arbor.model.enums.EstadoGeral;
+import com.example.arbor.model.enums.Problema;
+import com.example.arbor.model.enums.Vigor;
 import com.example.arbor.service.ArvoreService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +56,51 @@ public class ArvoreController {
         return ResponseEntity.ok(arvoreService.filtrarPorCondicao(condicao));
     }
 */
+    @GetMapping("/estado-geral/{estadoGeral}")
+    public ResponseEntity<List<Arvore>> buscarPorEstadoGeral(
+            @PathVariable EstadoGeral estadoGeral
+    ) {
+        return ResponseEntity.ok(
+                arvoreService.buscarPorEstadoGeral(estadoGeral)
+        );
+    }
+
+    @GetMapping("/vigor/{vigor}")
+    public ResponseEntity<List<Arvore>> buscarPorVigor(
+            @PathVariable Vigor vigor
+    ) {
+        return ResponseEntity.ok(
+                arvoreService.buscarPorVigor(vigor)
+        );
+    }
+
+    @GetMapping("/problemas/copa/{problema}")
+    public ResponseEntity<List<Arvore>> buscarProblemaCopa(
+            @PathVariable Problema problema
+    ) {
+        return ResponseEntity.ok(
+                arvoreService.buscarPorProblemaCopa(problema)
+        );
+    }
+
+    @GetMapping("/problemas/tronco/{problema}")
+    public ResponseEntity<List<Arvore>> buscarProblemaTronco(
+            @PathVariable Problema problema
+    ) {
+        return ResponseEntity.ok(
+                arvoreService.buscarPorProblemaTronco(problema)
+        );
+    }
+
+    @GetMapping("/problemas/raiz/{problema}")
+    public ResponseEntity<List<Arvore>> buscarProblemaRaiz(
+            @PathVariable Problema problema
+    ) {
+        return ResponseEntity.ok(
+                arvoreService.buscarPorProblemaRaiz(problema)
+        );
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
     public ResponseEntity<ArvoreResponseDTO> cadastrar(
