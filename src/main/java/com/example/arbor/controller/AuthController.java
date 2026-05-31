@@ -66,7 +66,12 @@ public class AuthController {
         String refreshToken = jwtService.gerarTokenRefresh(usuario);
 
 
-        return ResponseEntity.ok(new LoginResponseDTO(accessToken, refreshToken, usuario.getEmail(), usuario.getNome()));
+        return ResponseEntity.ok(new LoginResponseDTO(
+                accessToken,
+                refreshToken,
+                usuario.getEmail(),
+                usuario.getNome(),
+                usuario.getPerfilAcesso()));
     }
 
     @PostMapping("/refresh")
@@ -101,7 +106,12 @@ public class AuthController {
         String novoAccessToken = jwtService.gerarTokenAcesso(usuario);
         String novoRefreshToken = jwtService.gerarTokenRefresh(usuario);
 
-        return ResponseEntity.ok(new LoginResponseDTO(novoAccessToken, novoRefreshToken, usuario.getEmail(), usuario.getNome()));
+        return ResponseEntity.ok(new LoginResponseDTO(
+                novoAccessToken,
+                novoRefreshToken,
+                usuario.getEmail(),
+                usuario.getNome(),
+                usuario.getPerfilAcesso()));
     }
 
     @PostMapping("/registrar")
