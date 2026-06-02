@@ -2,16 +2,38 @@ version: '3.8'
 
 services:
   db:
-    image: postgis/postgis:15-3.3 # Imagem do Postgres já com a extensão espacial
+    image: postgis/postgis:15-3.3
     container_name: arbor_db
     environment:
       POSTGRES_DB: arbor_db
       POSTGRES_USER: arbor_user
       POSTGRES_PASSWORD: arbor_password
     ports:
-      - "5432:5432" # Porta padrão do PostgreSQL
+      - "5434:5432"
     volumes:
-      - arbor_data:/var/lib/postgresql/data # Salva os dados para não perder ao desligar
+      - arbor_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arbor_api
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/arbor_db?sslmode=disable
+      SPRING_DATASOURCE_USERNAME: arbor_user
+      SPRING_DATASOURCE_PASSWORD: arbor_password
+      JWT_SECRET: dev-local-jwt-secret-with-at-least-32-chars
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      DB_POOL_MAX: 10
+      DB_POOL_MIN_IDLE: 2
+      LOG_LEVEL: INFO
+    ports:
+      - "8080:8080"
     restart: unless-stopped
 
   pgadmin:
@@ -21,7 +43,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@arbor.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "5050:80" # Acessar o pgAdmin no navegador via localhost:5050
+      - "5050:80"
     depends_on:
       - db
     restart: unless-stopped

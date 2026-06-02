@@ -1,0 +1,10 @@
+target/
+.git/
+.idea/
+.vscode/
+*.log
+debug_output.txt
+hs_err_pid*.log
+cp.txt
+README.md
+HELP.md
