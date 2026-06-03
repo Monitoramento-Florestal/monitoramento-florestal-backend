@@ -2,25 +2,33 @@ package com.example.arbor.service;
 
 import com.example.arbor.dto.request.AlterarSenhaRequestDTO;
 import com.example.arbor.dto.request.AtualizarPerfilRequestDTO;
+import com.example.arbor.dto.request.AtualizarUsuarioAdminRequestDTO;
+import com.example.arbor.dto.response.PageResponseDTO;
 import com.example.arbor.dto.response.UsuarioPerfilResponseDTO;
+import com.example.arbor.dto.response.UsuarioResponseDTO;
+import com.example.arbor.exception.AcessoNegadoException;
 import com.example.arbor.exception.ConflitoException;
 import com.example.arbor.exception.RequisicaoInvalidaException;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.model.enums.Perfil;
-import com.example.arbor.repository.TokenRecuperacaoRepository;
 import com.example.arbor.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,18 +41,44 @@ class UsuarioServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private TokenRecuperacaoRepository tokenRecuperacaoRepository;
-
-    @Mock
-    private EmailService emailService;
-
     @InjectMocks
     private UsuarioService service;
 
     @Test
+    void listarTodosDeveRetornarPaginaParaGestor() {
+        Usuario executor = usuario(Perfil.GESTOR);
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
+
+        when(repository.findAll(anySpecification(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(usuario)));
+
+        PageResponseDTO<UsuarioResponseDTO> response = service.listarTodos(
+                Perfil.PESQUISADOR,
+                true,
+                "pesquisador",
+                0,
+                20,
+                executor);
+
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.page()).isZero();
+        assertThat(response.limit()).isEqualTo(20);
+        assertThat(response.total()).isEqualTo(1);
+        assertThat(response.items().getFirst().perfilAcesso()).isEqualTo(Perfil.PESQUISADOR);
+    }
+
+    @Test
+    void listarTodosDeveBloquearPerfilSemPermissaoAdministrativa() {
+        Usuario executor = usuario(Perfil.PESQUISADOR);
+
+        assertThatThrownBy(() -> service.listarTodos(null, null, null, 0, 20, executor))
+                .isInstanceOf(AcessoNegadoException.class)
+                .hasMessage("Voce nao tem permissao para gerenciar usuarios.");
+    }
+
+    @Test
     void buscarMeuPerfilDeveRetornarUsuarioAutenticado() {
-        Usuario usuario = usuario();
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
         when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
 
         UsuarioPerfilResponseDTO response = service.buscarMeuPerfil(usuario);
@@ -58,7 +92,7 @@ class UsuarioServiceTest {
 
     @Test
     void atualizarMeuPerfilDeveAlterarNomeEEmailSemAlterarPerfil() {
-        Usuario usuario = usuario();
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
         AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(" Novo Nome ", "novo@arbor.local");
 
         when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
@@ -75,7 +109,7 @@ class UsuarioServiceTest {
 
     @Test
     void atualizarMeuPerfilDeveBloquearEmailDuplicado() {
-        Usuario usuario = usuario();
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
         AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(null, "existente@arbor.local");
 
         when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
@@ -83,24 +117,48 @@ class UsuarioServiceTest {
 
         assertThatThrownBy(() -> service.atualizarMeuPerfil(usuario, dto))
                 .isInstanceOf(ConflitoException.class)
-                .hasMessage("E-mail já cadastrado.");
+                .hasMessage("E-mail ja cadastrado.");
     }
 
     @Test
     void atualizarMeuPerfilDeveExigirAoMenosUmCampo() {
-        Usuario usuario = usuario();
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
         AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(null, null);
 
         when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
 
         assertThatThrownBy(() -> service.atualizarMeuPerfil(usuario, dto))
                 .isInstanceOf(RequisicaoInvalidaException.class)
-                .hasMessage("Informe ao menos um campo para atualização.");
+                .hasMessage("Informe ao menos um campo para atualizacao.");
+    }
+
+    @Test
+    void atualizarUsuarioDeveAlterarDadosAdministrativosEInvalidarRefreshQuandoRoleMudar() {
+        Usuario executor = usuario(Perfil.ADMINISTRADOR);
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
+        AtualizarUsuarioAdminRequestDTO dto = new AtualizarUsuarioAdminRequestDTO(
+                "Gestor Interno",
+                "gestor-interno@arbor.local",
+                Perfil.GESTOR,
+                false);
+
+        when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
+        when(repository.existsByEmailAndIdNot("gestor-interno@arbor.local", usuario.getId())).thenReturn(false);
+        when(repository.save(usuario)).thenReturn(usuario);
+
+        UsuarioResponseDTO response = service.atualizarUsuario(usuario.getId(), dto, executor);
+
+        assertThat(response.nome()).isEqualTo("Gestor Interno");
+        assertThat(response.email()).isEqualTo("gestor-interno@arbor.local");
+        assertThat(response.perfilAcesso()).isEqualTo(Perfil.GESTOR);
+        assertThat(response.ativo()).isFalse();
+        assertThat(usuario.getRefreshTokenVersion()).isEqualTo(3);
+        verify(repository).save(usuario);
     }
 
     @Test
     void alterarMinhaSenhaDeveValidarSenhaAtualEInvalidarRefreshTokens() {
-        Usuario usuario = usuario();
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
         AlterarSenhaRequestDTO dto = new AlterarSenhaRequestDTO("SenhaAtual1", "NovaSenha1", "NovaSenha1");
 
         when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
@@ -116,7 +174,7 @@ class UsuarioServiceTest {
 
     @Test
     void alterarMinhaSenhaDeveBloquearSenhaAtualInvalida() {
-        Usuario usuario = usuario();
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
         AlterarSenhaRequestDTO dto = new AlterarSenhaRequestDTO("SenhaErrada1", "NovaSenha1", "NovaSenha1");
 
         when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
@@ -124,12 +182,12 @@ class UsuarioServiceTest {
 
         assertThatThrownBy(() -> service.alterarMinhaSenha(usuario, dto))
                 .isInstanceOf(RequisicaoInvalidaException.class)
-                .hasMessage("Senha atual inválida.");
+                .hasMessage("Senha atual invalida.");
     }
 
     @Test
     void alterarMinhaSenhaDeveValidarConfirmacao() {
-        Usuario usuario = usuario();
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
         AlterarSenhaRequestDTO dto = new AlterarSenhaRequestDTO("SenhaAtual1", "NovaSenha1", "OutraSenha1");
 
         when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
@@ -137,18 +195,23 @@ class UsuarioServiceTest {
 
         assertThatThrownBy(() -> service.alterarMinhaSenha(usuario, dto))
                 .isInstanceOf(RequisicaoInvalidaException.class)
-                .hasMessage("As senhas não coincidem.");
+                .hasMessage("As senhas nao coincidem.");
     }
 
-    private Usuario usuario() {
+    private Usuario usuario(Perfil perfil) {
         Usuario usuario = new Usuario();
         usuario.setId(UUID.fromString("2a7be8b4-96e2-43ab-93d7-d2fbc9ee5041"));
         usuario.setNome("Pesquisador Arbor");
         usuario.setEmail("pesquisador@arbor.local");
         usuario.setSenha("senha-atual-criptografada");
-        usuario.setPerfilAcesso(Perfil.PESQUISADOR);
+        usuario.setPerfilAcesso(perfil);
         usuario.setRefreshTokenVersion(2);
         usuario.setAtivo(true);
         return usuario;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Specification<Usuario> anySpecification() {
+        return any(Specification.class);
     }
 }
