@@ -2,6 +2,9 @@ package com.example.arbor.service;
 
 import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
+import com.example.arbor.exception.AcessoNegadoException;
+import com.example.arbor.exception.ConflitoException;
+import com.example.arbor.exception.RecursoNaoEncontradoException;
 import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.model.TokenRecuperacao;
@@ -38,7 +41,7 @@ public class UsuarioService {
 
     public Usuario buscarEntidadePorId(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Executor não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Executor não encontrado."));
     }
 
     public List<UsuarioResponseDTO> listarTodos(Boolean ativo, Usuario executor) {
@@ -57,7 +60,7 @@ public class UsuarioService {
 
     public UsuarioResponseDTO buscarPorId(UUID id, Usuario executor) {
         Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
         validarVisibilidade(usuario, executor);
 
@@ -66,7 +69,7 @@ public class UsuarioService {
 
     public UsuarioResponseDTO buscarPorEmail(String email, Usuario executor) {
         Usuario usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário com e-mail " + email + " não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário com e-mail " + email + " não encontrado."));
 
         validarVisibilidade(usuario, executor);
 
@@ -88,12 +91,12 @@ public class UsuarioService {
                 || dto.perfilAcesso() == Perfil.GESTOR
                 || dto.perfilAcesso() == Perfil.PESQUISADOR) {
             if (executor == null || executor.getPerfilAcesso() != Perfil.GESTOR) {
-                throw new RuntimeException("Erro: Apenas gestores podem atribuir níveis altos de acesso.");
+                throw new AcessoNegadoException("Apenas gestores podem atribuir níveis altos de acesso.");
             }
         }
 
         if (repository.existsByEmail(dto.email())) {
-            throw new RuntimeException("E-mail já cadastrado, pae!");
+            throw new ConflitoException("E-mail já cadastrado.");
         }
 
         Usuario usuario = new Usuario();
@@ -109,11 +112,11 @@ public class UsuarioService {
     @Transactional
     public void deletar(UUID id, Usuario executor) {
         if (executor.getPerfilAcesso() != Perfil.GESTOR) {
-            throw new RuntimeException("Acesso negado: Você não tem permissão para remover utilizadores.");
+            throw new AcessoNegadoException("Você não tem permissão para remover usuários.");
         }
 
         Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
         usuario.setAtivo(false);
         int refreshTokenVersion = usuario.getRefreshTokenVersion() == null ? 0 : usuario.getRefreshTokenVersion();
         usuario.setRefreshTokenVersion(refreshTokenVersion + 1);
@@ -122,7 +125,7 @@ public class UsuarioService {
 
     private void validarVisibilidade(Usuario usuario, Usuario executor) {
         if (Boolean.FALSE.equals(usuario.getAtivo()) && executor.getPerfilAcesso() != Perfil.GESTOR) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new RecursoNaoEncontradoException("Usuário não encontrado.");
         }
     }
 }

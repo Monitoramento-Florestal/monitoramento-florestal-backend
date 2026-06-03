@@ -6,6 +6,7 @@ import com.example.arbor.dto.response.LoginResponseDTO;
 import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
 import com.example.arbor.dto.response.AuthUserResponseDTO;
+import com.example.arbor.exception.TokenInvalidoException;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.security.JwtService;
 import com.example.arbor.service.UsuarioService;
@@ -75,27 +76,24 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshRequestDTO dto) {
+    public ResponseEntity<LoginResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO dto) {
         String refreshToken = dto.refreshToken();
 
         final String username;
         try {
             username = jwtService.extrairUsername(refreshToken);
         } catch (ExpiredJwtException | MalformedJwtException | SignatureException | IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Refresh token invalido ou expirado.");
+            throw new TokenInvalidoException("Refresh token inválido ou expirado.");
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         if (!(userDetails instanceof Usuario usuario)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Usuario invalido para refresh token.");
+            throw new TokenInvalidoException("Usuário inválido para refresh token.");
         }
 
         if (!jwtService.isRefreshTokenValido(refreshToken, usuario)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Refresh token invalido ou expirado.");
+            throw new TokenInvalidoException("Refresh token inválido ou expirado.");
         }
 
         Integer refreshVersion = usuario.getRefreshTokenVersion();
