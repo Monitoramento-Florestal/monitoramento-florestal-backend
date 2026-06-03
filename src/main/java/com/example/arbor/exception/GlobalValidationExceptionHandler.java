@@ -85,9 +85,12 @@ public class GlobalValidationExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleResponseStatusException(
             ResponseStatusException ex,
             HttpServletRequest request) {
-        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
-        String message = ex.getReason() == null ? status.getReasonPhrase() : ex.getReason();
-        return build(status, status.name(), message, request, Map.of());
+int rawStatus = ex.getStatusCode().value();
+HttpStatus status = HttpStatus.resolve(rawStatus);
+String code = (status != null) ? status.name() : "HTTP_" + rawStatus;
+if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+String message = ex.getReason() == null ? status.getReasonPhrase() : ex.getReason();
+return build(status, code, message, request, Map.of());
     }
 
     @ExceptionHandler(Exception.class)
