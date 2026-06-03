@@ -45,7 +45,7 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public Usuario buscarEntidadePorId(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Executor nao encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado."));
     }
 
     @Transactional(readOnly = true)
