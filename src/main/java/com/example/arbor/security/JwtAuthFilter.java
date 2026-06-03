@@ -1,7 +1,9 @@
 package com.example.arbor.security;
 
 import com.example.arbor.exception.ApiErrorResponse;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,15 +31,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .findAndAddModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build();
 
     public JwtAuthFilter(
             JwtService jwtService,
-            UserDetailsService userDetailsService,
-            ObjectMapper objectMapper) {
+            UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
-        this.objectMapper = objectMapper;
     }
 
     @Override
