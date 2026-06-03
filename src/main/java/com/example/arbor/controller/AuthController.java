@@ -5,6 +5,7 @@ import com.example.arbor.dto.request.RefreshRequestDTO;
 import com.example.arbor.dto.response.LoginResponseDTO;
 import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
+import com.example.arbor.dto.response.AuthUserResponseDTO;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.security.JwtService;
 import com.example.arbor.service.UsuarioService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
@@ -69,9 +71,7 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponseDTO(
                 accessToken,
                 refreshToken,
-                usuario.getEmail(),
-                usuario.getNome(),
-                usuario.getPerfilAcesso()));
+                AuthUserResponseDTO.from(usuario)));
     }
 
     @PostMapping("/refresh")
@@ -106,12 +106,16 @@ public class AuthController {
         String novoAccessToken = jwtService.gerarTokenAcesso(usuario);
         String novoRefreshToken = jwtService.gerarTokenRefresh(usuario);
 
+
         return ResponseEntity.ok(new LoginResponseDTO(
                 novoAccessToken,
                 novoRefreshToken,
-                usuario.getEmail(),
-                usuario.getNome(),
-                usuario.getPerfilAcesso()));
+                AuthUserResponseDTO.from(usuario)));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<AuthUserResponseDTO> me(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(AuthUserResponseDTO.from(usuario));
     }
 
     @PostMapping("/registrar")
@@ -119,4 +123,5 @@ public class AuthController {
         UsuarioResponseDTO response = usuarioService.salvar(dto, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 }
