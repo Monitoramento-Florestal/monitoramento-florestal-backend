@@ -93,11 +93,13 @@ String message = ex.getReason() == null ? status.getReasonPhrase() : ex.getReaso
 return build(status, code, message, request, Map.of());
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleUnexpectedException(Exception ex, HttpServletRequest request) {
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR",
-                "Erro interno inesperado.", request, Map.of());
-    }
+@ExceptionHandler(Exception.class)
+public ResponseEntity<ApiErrorResponse> handleUnexpectedException(Exception ex, HttpServletRequest request) {
+    org.slf4j.LoggerFactory.getLogger(GlobalValidationExceptionHandler.class)
+            .error("Unhandled exception at {}", request.getRequestURI(), ex);
+    return build(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR",
+            "Erro interno inesperado.", request, Map.of());
+}
 
     private ResponseEntity<ApiErrorResponse> build(
             HttpStatus status,
