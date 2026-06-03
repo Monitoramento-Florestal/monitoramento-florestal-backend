@@ -1,22 +1,24 @@
 package com.example.arbor.service;
 
+import com.example.arbor.dto.request.AlterarSenhaRequestDTO;
+import com.example.arbor.dto.request.AtualizarPerfilRequestDTO;
 import com.example.arbor.dto.request.UsuarioRequestDTO;
+import com.example.arbor.dto.response.UsuarioPerfilResponseDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
 import com.example.arbor.exception.AcessoNegadoException;
 import com.example.arbor.exception.ConflitoException;
 import com.example.arbor.exception.RecursoNaoEncontradoException;
+import com.example.arbor.exception.RequisicaoInvalidaException;
+import com.example.arbor.exception.TokenInvalidoException;
 import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
-import com.example.arbor.model.TokenRecuperacao;
 import com.example.arbor.repository.TokenRecuperacaoRepository;
 import com.example.arbor.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -85,6 +87,61 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public UsuarioPerfilResponseDTO buscarMeuPerfil(Usuario autenticado) {
+        return UsuarioPerfilResponseDTO.from(buscarUsuarioAutenticado(autenticado));
+    }
+
+    @Transactional
+    public UsuarioPerfilResponseDTO atualizarMeuPerfil(Usuario autenticado, AtualizarPerfilRequestDTO dto) {
+        Usuario usuario = buscarUsuarioAutenticado(autenticado);
+        boolean atualizado = false;
+
+        if (dto.nome() != null) {
+            String nome = dto.nome().trim();
+            if (nome.isBlank()) {
+                throw new RequisicaoInvalidaException("Nome não pode ser vazio.");
+            }
+            usuario.setNome(nome);
+            atualizado = true;
+        }
+
+        if (dto.email() != null) {
+            String email = dto.email().trim();
+            if (email.isBlank()) {
+                throw new RequisicaoInvalidaException("E-mail não pode ser vazio.");
+            }
+            if (!email.equalsIgnoreCase(usuario.getEmail()) && repository.existsByEmailAndIdNot(email, usuario.getId())) {
+                throw new ConflitoException("E-mail já cadastrado.");
+            }
+            usuario.setEmail(email);
+            atualizado = true;
+        }
+
+        if (!atualizado) {
+            throw new RequisicaoInvalidaException("Informe ao menos um campo para atualização.");
+        }
+
+        return UsuarioPerfilResponseDTO.from(repository.save(usuario));
+    }
+
+    @Transactional
+    public void alterarMinhaSenha(Usuario autenticado, AlterarSenhaRequestDTO dto) {
+        Usuario usuario = buscarUsuarioAutenticado(autenticado);
+
+        if (!passwordEncoder.matches(dto.senhaAtual(), usuario.getSenha())) {
+            throw new RequisicaoInvalidaException("Senha atual inválida.");
+        }
+
+        if (!dto.novaSenha().equals(dto.confirmarSenha())) {
+            throw new RequisicaoInvalidaException("As senhas não coincidem.");
+        }
+
+        usuario.setSenha(passwordEncoder.encode(dto.novaSenha()));
+        incrementarRefreshTokenVersion(usuario);
+        repository.save(usuario);
+    }
+
     @Transactional
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto, Usuario executor) {
         if (dto.perfilAcesso() == Perfil.ADMINISTRADOR
@@ -118,9 +175,22 @@ public class UsuarioService {
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
         usuario.setAtivo(false);
+        incrementarRefreshTokenVersion(usuario);
+        repository.save(usuario);
+    }
+
+    private Usuario buscarUsuarioAutenticado(Usuario autenticado) {
+        if (autenticado == null || autenticado.getId() == null) {
+            throw new TokenInvalidoException("Usuário autenticado não encontrado.");
+        }
+
+        return repository.findById(autenticado.getId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
+    }
+
+    private void incrementarRefreshTokenVersion(Usuario usuario) {
         int refreshTokenVersion = usuario.getRefreshTokenVersion() == null ? 0 : usuario.getRefreshTokenVersion();
         usuario.setRefreshTokenVersion(refreshTokenVersion + 1);
-        repository.save(usuario);
     }
 
     private void validarVisibilidade(Usuario usuario, Usuario executor) {

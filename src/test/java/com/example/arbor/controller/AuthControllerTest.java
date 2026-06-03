@@ -4,6 +4,7 @@ import com.example.arbor.dto.request.LoginRequestDTO;
 import com.example.arbor.dto.request.RefreshRequestDTO;
 import com.example.arbor.dto.response.AuthUserResponseDTO;
 import com.example.arbor.dto.response.LoginResponseDTO;
+import com.example.arbor.exception.TokenInvalidoException;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.repository.UsuarioRepository;
@@ -24,6 +25,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -81,12 +83,12 @@ class AuthControllerTest {
         when(jwtService.gerarTokenAcesso(usuario)).thenReturn("novo-access-token");
         when(jwtService.gerarTokenRefresh(usuario)).thenReturn("novo-refresh-token");
 
-        ResponseEntity<?> response = controller.refresh(new RefreshRequestDTO("refresh-token"));
+        ResponseEntity<LoginResponseDTO> response = controller.refresh(new RefreshRequestDTO("refresh-token"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isInstanceOf(LoginResponseDTO.class);
 
-        LoginResponseDTO body = (LoginResponseDTO) response.getBody();
+        LoginResponseDTO body = response.getBody();
+        assertThat(body).isNotNull();
         assertThat(body.accessToken()).isEqualTo("novo-access-token");
         assertThat(body.refreshToken()).isEqualTo("novo-refresh-token");
         assertThat(body.usuario()).isEqualTo(AuthUserResponseDTO.from(usuario));
@@ -95,27 +97,25 @@ class AuthControllerTest {
     }
 
     @Test
-    void refreshDeveRetornarUnauthorizedQuandoTokenForInvalido() {
+    void refreshDeveLancarTokenInvalidoQuandoTokenForInvalido() {
         when(jwtService.extrairUsername("refresh-token")).thenThrow(new IllegalArgumentException("token invalido"));
 
-        ResponseEntity<?> response = controller.refresh(new RefreshRequestDTO("refresh-token"));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).isEqualTo("Refresh token invalido ou expirado.");
+        assertThatThrownBy(() -> controller.refresh(new RefreshRequestDTO("refresh-token")))
+                .isInstanceOf(TokenInvalidoException.class)
+                .hasMessage("Refresh token inválido ou expirado.");
     }
 
     @Test
-    void refreshDeveRetornarUnauthorizedQuandoRefreshNaoForValidoParaUsuario() {
+    void refreshDeveLancarTokenInvalidoQuandoRefreshNaoForValidoParaUsuario() {
         Usuario usuario = usuario();
 
         when(jwtService.extrairUsername("refresh-token")).thenReturn(usuario.getEmail());
         when(userDetailsService.loadUserByUsername(usuario.getEmail())).thenReturn(usuario);
         when(jwtService.isRefreshTokenValido("refresh-token", usuario)).thenReturn(false);
 
-        ResponseEntity<?> response = controller.refresh(new RefreshRequestDTO("refresh-token"));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).isEqualTo("Refresh token invalido ou expirado.");
+        assertThatThrownBy(() -> controller.refresh(new RefreshRequestDTO("refresh-token")))
+                .isInstanceOf(TokenInvalidoException.class)
+                .hasMessage("Refresh token inválido ou expirado.");
     }
 
     @Test
