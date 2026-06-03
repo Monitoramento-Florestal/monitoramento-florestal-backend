@@ -150,7 +150,7 @@ public class RegistroArvoreService {
         registro.setEspecie(dto.especie());
         registro.setBairro(dto.bairro());
         registro.setRua(dto.rua());
-        registro.setRua(dto.rua());
+        registro.setReferencia(dto.referencia());
         registro.setPesquisador(pesquisadorPersistido);
         registro.setDataColeta(LocalDateTime.now());
         atributosRegistro(registro,
