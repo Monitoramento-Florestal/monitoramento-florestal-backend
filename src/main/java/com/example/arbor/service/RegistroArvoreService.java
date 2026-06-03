@@ -125,7 +125,7 @@ public class RegistroArvoreService {
 
 
         RegistroArvore registro = new RegistroArvore();
-
+        registro.setVersao(1);
         registro.setPesquisador(pesquisadorPersistido);
         registro.setDataColeta(LocalDateTime.now());
         registro.setArvore(arvore);
@@ -146,7 +146,7 @@ public class RegistroArvoreService {
                 .orElseThrow(() -> new RuntimeException("Pesquisador não encontrado"));
 
         RegistroArvore registro = new RegistroArvore();
-
+        registro.setVersao(1);
         registro.setEspecie(dto.especie());
         registro.setBairro(dto.bairro());
         registro.setRua(dto.rua());
