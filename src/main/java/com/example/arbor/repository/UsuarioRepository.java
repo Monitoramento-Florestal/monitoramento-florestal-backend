@@ -24,4 +24,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID>, JpaSpec
     boolean existsByEmail(String email);
 
     boolean existsByEmailAndIdNot(String email, UUID id);
+
+    boolean existsByPerfilAcessoIn(List<Perfil> perfis);
 }
