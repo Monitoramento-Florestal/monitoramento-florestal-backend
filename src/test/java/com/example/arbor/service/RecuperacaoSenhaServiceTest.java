@@ -26,6 +26,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -78,6 +79,17 @@ class RecuperacaoSenhaServiceTest {
         assertThat(token.isUtilizado()).isFalse();
         assertThat(token.getExpiracao()).isAfter(LocalDateTime.now());
         assertThat(emailCaptor.getValue().getTo()).containsExactly(usuario.getEmail());
+    }
+
+    @Test
+    void solicitarRecuperacaoNaoDevePropagarFalhaNoEnvioDeEmail() {
+        Usuario usuario = usuario();
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        doThrow(new RuntimeException("smtp indisponivel")).when(mailSender).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage.class));
+
+        service.solicitarRecuperacao(new SolicitarRecuperacaoDTO(usuario.getEmail()));
+
+        verify(tokenRepository).save(org.mockito.ArgumentMatchers.any(TokenRecuperacao.class));
     }
 
     @Test

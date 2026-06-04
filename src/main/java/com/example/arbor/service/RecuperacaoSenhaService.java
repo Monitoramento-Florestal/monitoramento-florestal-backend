@@ -13,12 +13,16 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
 @Service
 public class RecuperacaoSenhaService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecuperacaoSenhaService.class);
 
     private final UsuarioRepository usuarioRepository;
     private final TokenRecuperacaoRepository tokenRepository;
@@ -49,7 +53,11 @@ public class RecuperacaoSenhaService {
             token.setUtilizado(false);
 
             tokenRepository.save(token);
-            enviarEmail(usuario.getEmail(), usuario.getNome(), token.getCodigo());
+            try {
+                enviarEmail(usuario.getEmail(), usuario.getNome(), token.getCodigo());
+            } catch (RuntimeException ex) {
+                LOGGER.warn("Falha ao enviar e-mail de recuperacao de senha para usuario {}", usuario.getId(), ex);
+            }
         });
     }
 
