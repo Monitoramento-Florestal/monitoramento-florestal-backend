@@ -172,7 +172,7 @@ public class RegistroArvoreService {
         Usuario pesquisadorResponsavel = registro.getPesquisador();
 
         if (!pesquisadorResponsavel.getId().equals(executor.getId())
-                && executor.getPerfilAcesso() != Perfil.GESTOR) {
+                && !isGestorOuAdministrador(executor)) {
             throw new RuntimeException("Acesso negado: Apenas o pesquisador responsável ou gestores podem excluir registros.");
         }
 
@@ -238,5 +238,10 @@ public class RegistroArvoreService {
         registro.setAdministradorResponsavel(null);
         registro.setDataAnalise(null);
         registro.setMotivoRecusa(null);
+    }
+
+    private boolean isGestorOuAdministrador(Usuario usuario) {
+        return usuario != null
+                && (usuario.getPerfilAcesso() == Perfil.GESTOR || usuario.getPerfilAcesso() == Perfil.ADMINISTRADOR);
     }
 }
