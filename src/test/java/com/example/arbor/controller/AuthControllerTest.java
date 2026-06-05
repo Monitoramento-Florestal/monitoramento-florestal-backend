@@ -86,7 +86,6 @@ class AuthControllerTest {
         ResponseEntity<LoginResponseDTO> response = controller.refresh(new RefreshRequestDTO("refresh-token"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
         LoginResponseDTO body = response.getBody();
         assertThat(body).isNotNull();
         assertThat(body.accessToken()).isEqualTo("novo-access-token");
@@ -102,7 +101,7 @@ class AuthControllerTest {
 
         assertThatThrownBy(() -> controller.refresh(new RefreshRequestDTO("refresh-token")))
                 .isInstanceOf(TokenInvalidoException.class)
-                .hasMessage("Refresh token inválido ou expirado.");
+                .hasMessage("Refresh token invalido ou expirado.");
     }
 
     @Test
@@ -115,7 +114,7 @@ class AuthControllerTest {
 
         assertThatThrownBy(() -> controller.refresh(new RefreshRequestDTO("refresh-token")))
                 .isInstanceOf(TokenInvalidoException.class)
-                .hasMessage("Refresh token inválido ou expirado.");
+                .hasMessage("Refresh token invalido ou expirado.");
     }
 
     @Test

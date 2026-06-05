@@ -94,7 +94,7 @@ public class ArvoreService {
 
     @Transactional
     public void deletar(UUID id, Usuario executor) {
-        if (executor.getPerfilAcesso() != Perfil.GESTOR) {
+        if (!isGestorOuAdministrador(executor)) {
             throw new RuntimeException("Acesso negado: Apenas gestores podem excluir registros.");
         }
 
@@ -141,5 +141,10 @@ public class ArvoreService {
         arvore.setConflito(dto.conflito());
         arvore.setManejo(dto.manejo());
         arvore.setObservacoes(dto.observacoes());
+    }
+
+    private boolean isGestorOuAdministrador(Usuario usuario) {
+        return usuario != null
+                && (usuario.getPerfilAcesso() == Perfil.GESTOR || usuario.getPerfilAcesso() == Perfil.ADMINISTRADOR);
     }
 }

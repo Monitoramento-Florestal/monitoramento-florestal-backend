@@ -40,44 +40,13 @@ public class RegistroArvoreController {
     }
 
     @GetMapping("/arvore/{id}")
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<RegistroResponseDTO>> filtrarPorArvoreId(@PathVariable UUID id) {
         return ResponseEntity.ok(registroService.filtrarPorArvore(id));
     }
 
-//    @PutMapping("/{id}/aprovar")
-//    @PreAuthorize("hasRole('GESTOR')")
-//    public ResponseEntity<RegistroResponseDTO> aprovar(@PathVariable UUID id,
-//                                       @RequestBody AprovarRegistroRequestDTO dto,
-//                                       @AuthenticationPrincipal Usuario executor){
-//        return ResponseEntity.ok(registroService.aprovarRegistro(id, executor));
-//    }
-//
-//    @PutMapping("/{id}/recusar")
-//    @PreAuthorize("hasRole('GESTOR')")
-//    public ResponseEntity<RegistroResponseDTO> recusar(@PathVariable UUID id,
-//                                       @RequestBody RecusarAprovacaoRequestDTO dto,
-//                                       @AuthenticationPrincipal Usuario executor){
-//        return ResponseEntity.ok(registroService.recusarRegistro(id, executor, dto));
-//    }
-//
-//    @PostMapping
-//    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
-//    public ResponseEntity<RegistroResponseDTO> cadastrar(@Valid @RequestBody RegistroRequestDTO dto,
-//                                                         @AuthenticationPrincipal Usuario executor){
-//        return ResponseEntity.ok(registroService.cadastrar(dto, executor));
-//    }
-//
-//    @PostMapping("/nova-arvore")
-//    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
-//    public ResponseEntity<RegistroNovaArvoreResponseDTO> cadastrarNovaArvore(
-//            @Valid @RequestBody RegistroNovaArvoreRequestDTO dto,
-//            @AuthenticationPrincipal Usuario executor){
-//        return ResponseEntity.ok(registroService.cadastrarNovaArvore(dto, executor));
-//    }
-
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR')")
     public ResponseEntity<RegistroResponseDTO> deletar(@PathVariable UUID id,
                                                        @AuthenticationPrincipal Usuario executor){
         registroService.deletar(id, executor);

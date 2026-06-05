@@ -31,19 +31,19 @@ public class ArvoreController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<ArvoreResponseDTO>> listarTodas() {
         return ResponseEntity.ok(arvoreService.listarTodas());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<ArvoreResponseDTO> buscarPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(arvoreService.buscarPorId(id));
     }
 
     @GetMapping("/especie")
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<ArvoreResponseDTO>> buscarPorEspecie(@RequestParam String nome) {
         return ResponseEntity.ok(arvoreService.buscarPorEspecie(nome));
     }
@@ -57,6 +57,7 @@ public class ArvoreController {
     }
 */
     @GetMapping("/estado-geral/{estadoGeral}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<Arvore>> buscarPorEstadoGeral(
             @PathVariable EstadoGeral estadoGeral
     ) {
@@ -66,6 +67,7 @@ public class ArvoreController {
     }
 
     @GetMapping("/vigor/{vigor}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<Arvore>> buscarPorVigor(
             @PathVariable Vigor vigor
     ) {
@@ -75,6 +77,7 @@ public class ArvoreController {
     }
 
     @GetMapping("/problemas/copa/{problema}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<Arvore>> buscarProblemaCopa(
             @PathVariable Problema problema
     ) {
@@ -84,6 +87,7 @@ public class ArvoreController {
     }
 
     @GetMapping("/problemas/tronco/{problema}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<Arvore>> buscarProblemaTronco(
             @PathVariable Problema problema
     ) {
@@ -93,6 +97,7 @@ public class ArvoreController {
     }
 
     @GetMapping("/problemas/raiz/{problema}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<Arvore>> buscarProblemaRaiz(
             @PathVariable Problema problema
     ) {
@@ -102,7 +107,7 @@ public class ArvoreController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR')")
     public ResponseEntity<ArvoreResponseDTO> cadastrar(
             @Valid @RequestBody ArvoreRequestDTO dto,
             @AuthenticationPrincipal Usuario usuarioLogado) {
@@ -111,7 +116,7 @@ public class ArvoreController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<Void> deletar(
             @PathVariable UUID id,
             @AuthenticationPrincipal Usuario usuarioLogado) {
@@ -120,6 +125,7 @@ public class ArvoreController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR')")
     public ResponseEntity<ArvoreResponseDTO> atualizar(
             @PathVariable UUID id,
             @Valid @RequestBody ArvoreRequestDTO dto,

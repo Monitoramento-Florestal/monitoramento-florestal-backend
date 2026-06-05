@@ -1,9 +1,16 @@
 package com.example.arbor.config;
 
+import com.example.arbor.exception.ApiErrorResponse;
 import com.example.arbor.repository.UsuarioRepository;
 import com.example.arbor.security.JwtAuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,28 +26,38 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Map;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
     private final UsuarioRepository usuarioRepository;
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .findAndAddModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build();
 
     public SecurityConfig(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
 
-    // Define as regras de acesso por rota
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
             AuthenticationProvider authenticationProvider,
             JwtAuthFilter jwtAuthFilter) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable()) // Desativa CSRF (APIs REST não usam)
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Rotas públicas (não precisam de token):
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/login",
+                                "/api/auth/refresh",
+                                "/api/auth/registrar").permitAll()
                         .requestMatchers(
-                                "/api/auth/**",
                                 "/api/recuperar-senha/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -49,46 +66,64 @@ public class SecurityConfig {
                                 "/v3/api-docs.yaml",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/actuator/**"
-                        ).permitAll()
-                        // Tudo o mais exige autenticação:
+                                "/actuator/health",
+                                "/actuator/info").permitAll()
                         .anyRequest().authenticated())
-                // Sem sessão! JWT é stateless — o token substitui a sessão
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, ex) ->
+                                escreverErro(response, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED",
+                                        "Autenticacao obrigatoria.", request.getRequestURI()))
+                        .accessDeniedHandler((request, response, ex) ->
+                                escreverErro(response, HttpStatus.FORBIDDEN, "ACCESS_DENIED",
+                                        "Voce nao tem permissao para executar esta acao.", request.getRequestURI())))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Registra nosso provedor de autenticação
                 .authenticationProvider(authenticationProvider)
-                // Adiciona nosso filtro JWT ANTES do filtro padrão de senha
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    // Diz ao Spring como buscar usuários (por email, no banco)
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> usuarioRepository
                 .findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado: " + username));
     }
 
-    // Provedor de autenticação: combina UserDetailsService + PasswordEncoder
-    // No Spring Security 7, o PasswordEncoder é detectado automaticamente via @Bean
     @Bean
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
+    public AuthenticationProvider authenticationProvider(
+            UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
-    // Gerenciador de autenticação (necessário para o AuthController usar)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // BCrypt: algoritmo de hash para senhas (nunca salve senha em texto puro!)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void escreverErro(
+            HttpServletResponse response,
+            HttpStatus status,
+            String code,
+            String message,
+            String path) throws IOException {
+        ApiErrorResponse errorResponse = new ApiErrorResponse(
+                Instant.now(),
+                status.value(),
+                code,
+                message,
+                path,
+                Map.of());
+
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+        objectMapper.writeValue(response.getWriter(), errorResponse);
     }
 }
