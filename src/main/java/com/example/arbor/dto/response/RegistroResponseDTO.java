@@ -1,7 +1,5 @@
 package com.example.arbor.dto.response;
 
-import com.example.arbor.dto.resumo.UsuarioResumoDTO;
-import com.example.arbor.model.Arvore;
 import com.example.arbor.model.Conflito;
 import com.example.arbor.model.Manejo;
 import com.example.arbor.model.RegistroArvore;
@@ -16,10 +14,6 @@ public record RegistroResponseDTO(
         UsuarioResponseDTO pesquisador,
         LocalDateTime dataColeta,
         ArvoreResponseDTO arvore,
-        UsuarioResponseDTO administradorResponsavel,
-        LocalDateTime dataAnalise,
-        String motivoRecusa,
-        StatusRegistro status,
         Double alturaColetada,
         Double dapColetada,
         Double copaColetada,
@@ -31,7 +25,7 @@ public record RegistroResponseDTO(
         EstruturaTronco estruturaTronco,
         EstruturaBase estruturaBase,
         EstruturaCopa estruturaCopa,
-        InclinacaoTronco inclinacaoTronco,
+        InclinacaoTronco inclinacao,
         AncoragemRadicular ancoragem,
         FluxoPedestre fluxoPedestre,
         FluxoAutomovel fluxoAutomovel,
@@ -50,13 +44,6 @@ public record RegistroResponseDTO(
                 registro.getArvore() == null
                         ? null
                         : new ArvoreResponseDTO(registro.getArvore()),
-
-                registro.getAdministradorResponsavel() == null
-                        ? null
-                        : new UsuarioResponseDTO(registro.getAdministradorResponsavel()),
-                registro.getDataAnalise(),
-                registro.getMotivoRecusa(),
-                registro.getStatus(),
 
                 registro.getAlturaColetada(),
                 registro.getDapColetada(),

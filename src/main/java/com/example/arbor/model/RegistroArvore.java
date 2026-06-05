@@ -39,23 +39,12 @@ public class RegistroArvore {
     @Column(name = "data_coleta")
     private LocalDateTime dataColeta;
 
+    @Column(name = "registro_origem_id")
+    private UUID registroOrigemId;
+
     @ManyToOne
     @JoinColumn(name = "arvore")
     private Arvore arvore;
-
-    @ManyToOne
-    @JoinColumn(name = "administrador")
-    private Usuario administradorResponsavel;
-
-    @Column(name = "data_analise")
-    private LocalDateTime dataAnalise;
-
-    @Column(name = "motivo_recusa")
-    private String motivoRecusa;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusRegistro status;
 
     @Column(name = "altura_coletada")
     private Double alturaColetada;

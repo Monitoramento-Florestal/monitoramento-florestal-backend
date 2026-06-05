@@ -9,8 +9,6 @@ import java.util.UUID;
 
 public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, UUID> {
 
-    List<RegistroArvore> findByStatus(StatusRegistro status);
-
     List<RegistroArvore> findByPesquisadorId(UUID id);
 
     List<RegistroArvore> findByStatusAndPesquisadorId(StatusRegistro status, UUID id);
