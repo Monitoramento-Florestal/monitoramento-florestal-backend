@@ -82,3 +82,20 @@ If you want to visually inspect the PostGIS database:
 1. Go to `http://localhost:5050` in your browser.
 2. Login with `admin@arbor.com` / `admin`.
 3. Connect to `localhost` (or the container IP) on port `5432`.
+
+## Administrative Bootstrap
+
+Flyway includes a historical initial manager migration. At runtime, the application also checks whether at least one
+`ADMINISTRADOR` or `GESTOR` exists. If none exists, it can create the first administrative user from environment
+variables:
+
+```bash
+ARBOR_BOOTSTRAP_ADMIN_ENABLED=true
+ARBOR_BOOTSTRAP_ADMIN_NAME="Admin Arbor"
+ARBOR_BOOTSTRAP_ADMIN_EMAIL="admin@example.com"
+ARBOR_BOOTSTRAP_ADMIN_PASSWORD="StrongPassword123"
+ARBOR_BOOTSTRAP_ADMIN_ROLE=ADMINISTRADOR
+```
+
+In production, if no administrative user exists and bootstrap credentials are missing, startup fails intentionally.
+The bootstrap password must have at least 12 characters, one uppercase letter, and one number.

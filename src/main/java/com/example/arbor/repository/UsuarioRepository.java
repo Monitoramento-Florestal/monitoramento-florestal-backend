@@ -3,6 +3,7 @@ package com.example.arbor.repository;
 import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
+public interface UsuarioRepository extends JpaRepository<Usuario, UUID>, JpaSpecificationExecutor<Usuario> {
 
     Optional<Usuario> findByEmail(String email);
 
@@ -21,4 +22,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     List<Usuario> findByPerfilAcessoAndAtivo(Perfil perfilAcesso, Boolean ativo);
 
     boolean existsByEmail(String email);
+
+    boolean existsByEmailAndIdNot(String email, UUID id);
+
+    boolean existsByPerfilAcessoIn(List<Perfil> perfis);
 }
