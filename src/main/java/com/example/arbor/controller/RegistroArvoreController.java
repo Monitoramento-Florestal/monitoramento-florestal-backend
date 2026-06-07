@@ -56,7 +56,7 @@ public class RegistroArvoreController {
     }
 
     @PutMapping("/{id}/aprovar")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<RegistroResponseDTO> aprovar(@PathVariable UUID id,
                                        @RequestBody AprovarRegistroRequestDTO dto,
                                        @AuthenticationPrincipal Usuario executor){
@@ -64,7 +64,7 @@ public class RegistroArvoreController {
     }
 
     @PutMapping("/{id}/recusar")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<RegistroResponseDTO> recusar(@PathVariable UUID id,
                                        @RequestBody RecusarRegistroRequestDTO dto,
                                        @AuthenticationPrincipal Usuario executor){

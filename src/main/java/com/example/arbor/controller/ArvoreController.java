@@ -89,7 +89,7 @@ public class ArvoreController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<Void> deletar(
             @PathVariable UUID id,
             @AuthenticationPrincipal Usuario usuarioLogado

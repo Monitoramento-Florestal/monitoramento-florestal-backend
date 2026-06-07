@@ -28,7 +28,7 @@ public class UsuarioController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<PageResponseDTO<UsuarioResponseDTO>> listarTodos(
             @RequestParam(required = false) Perfil perfilAcesso,
             @RequestParam(required = false) Boolean ativo,
@@ -40,7 +40,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('GESTOR') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR') or #id == authentication.principal.id")
     public ResponseEntity<UsuarioResponseDTO> buscarPorId(
             @PathVariable UUID id,
             @AuthenticationPrincipal Usuario executor) {
@@ -48,7 +48,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/email")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<UsuarioResponseDTO> buscarPorEmail(
             @RequestParam String email,
             @AuthenticationPrincipal Usuario executor) {
@@ -56,7 +56,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/perfil/{perfil}")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<java.util.List<UsuarioResponseDTO>> listarPorPerfil(
             @PathVariable Perfil perfil,
             @RequestParam(required = false) Boolean ativo) {
@@ -64,7 +64,7 @@ public class UsuarioController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<UsuarioResponseDTO> cadastrar(
             @Valid @RequestBody UsuarioRequestDTO dto,
             @AuthenticationPrincipal Usuario executor) {
@@ -72,7 +72,7 @@ public class UsuarioController {
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<UsuarioResponseDTO> atualizar(
             @PathVariable UUID id,
             @Valid @RequestBody AtualizarUsuarioAdminRequestDTO dto,
@@ -81,7 +81,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('GESTOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR')")
     public ResponseEntity<Void> deletar(
             @PathVariable UUID id,
             @AuthenticationPrincipal Usuario executor) {
