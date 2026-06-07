@@ -155,9 +155,7 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto, Usuario executor) {
-        if (isPerfilElevado(dto.perfilAcesso()) && !isOperadorAdministrativo(executor)) {
-            throw new AcessoNegadoException("Apenas gestores ou administradores podem atribuir niveis altos de acesso.");
-        }
+        validarAtribuicaoPerfil(dto.perfilAcesso(), executor);
 
         if (repository.existsByEmail(dto.email())) {
             throw new ConflitoException("E-mail ja cadastrado.");
@@ -203,6 +201,7 @@ public class UsuarioService {
         }
 
         if (dto.perfilAcesso() != null && dto.perfilAcesso() != usuario.getPerfilAcesso()) {
+            validarAtribuicaoPerfil(dto.perfilAcesso(), executor);
             usuario.setPerfilAcesso(dto.perfilAcesso());
             atualizado = true;
             invalidaRefreshToken = true;
@@ -260,11 +259,24 @@ public class UsuarioService {
 
     private boolean isOperadorAdministrativo(Usuario usuario) {
         return usuario != null
-                && (usuario.getPerfilAcesso() == Perfil.GESTOR || usuario.getPerfilAcesso() == Perfil.ADMINISTRADOR);
+                && usuario.getPerfilAcesso() != null
+                && usuario.getPerfilAcesso().isAdministrativo();
     }
 
-    private boolean isPerfilElevado(Perfil perfil) {
-        return perfil == Perfil.ADMINISTRADOR || perfil == Perfil.GESTOR || perfil == Perfil.PESQUISADOR;
+    private void validarAtribuicaoPerfil(Perfil perfil, Usuario executor) {
+        if (perfil.isAdministrativo() && !isAdministrador(executor)) {
+            throw new AcessoNegadoException(
+                    "Apenas administradores podem criar usuarios ou atribuir perfis administrativos.");
+        }
+
+        if (perfil == Perfil.PESQUISADOR && !isOperadorAdministrativo(executor)) {
+            throw new AcessoNegadoException(
+                    "Apenas gestores ou administradores podem atribuir o perfil de pesquisador.");
+        }
+    }
+
+    private boolean isAdministrador(Usuario usuario) {
+        return usuario != null && usuario.getPerfilAcesso() == Perfil.ADMINISTRADOR;
     }
 
     private int validarPage(int page) {

@@ -45,6 +45,19 @@ class SecurityConfigTest {
     }
 
     @Test
+    void administradorDeveHerdarAutoridadeDeGestor() {
+        Usuario usuario = usuario(true);
+        usuario.setPerfilAcesso(Perfil.ADMINISTRADOR);
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+
+        UserDetails userDetails = securityConfig.userDetailsService().loadUserByUsername(usuario.getEmail());
+
+        assertThat(userDetails.getAuthorities())
+                .extracting(Object::toString)
+                .containsExactlyInAnyOrder("ROLE_ADMINISTRADOR", "ROLE_GESTOR");
+    }
+
+    @Test
     void userDetailsServiceDeveLancarQuandoUsuarioNaoExiste() {
         when(usuarioRepository.findByEmail("ausente@arbor.local")).thenReturn(Optional.empty());
 
