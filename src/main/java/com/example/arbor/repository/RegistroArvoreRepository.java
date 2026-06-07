@@ -24,4 +24,9 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
     );
 
     List<RegistroArvore> findByArvoreIdOrderByVersaoDesc(UUID arvoreId);
+
+    Optional<RegistroArvore> findByIdAndArvoreId(
+            UUID recordId,
+            UUID arvoreId
+    );
 }

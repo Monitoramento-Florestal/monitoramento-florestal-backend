@@ -101,5 +101,20 @@ public class RegistroArvoreController {
         return ResponseEntity.ok(
                 registroService.listarHistoricoPorArvore(treeId)
         );
+
+    }
+    @GetMapping("/trees/{treeId}/records/{recordId}")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    public ResponseEntity<RegistroResponseDTO> buscarRegistroDaArvore(
+            @PathVariable UUID treeId,
+            @PathVariable UUID recordId
+    ) {
+
+        return ResponseEntity.ok(
+                registroService.buscarRegistroDaArvore(
+                        treeId,
+                        recordId
+                )
+        );
     }
 }

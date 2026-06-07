@@ -176,6 +176,25 @@ public class RegistroArvoreService {
                 .collect(Collectors.toList());
     }
 
+    public RegistroResponseDTO buscarRegistroDaArvore(
+            UUID arvoreId,
+            UUID recordId
+    ) {
+
+        arvoreRepository.findByIdAndAtivaTrue(arvoreId)
+                .orElseThrow(() ->
+                        new RuntimeException("Árvore ativa não encontrada"));
+
+        RegistroArvore registro = registroRepository
+                .findByIdAndArvoreId(recordId, arvoreId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Registro não pertence à árvore informada"
+                        ));
+
+        return new RegistroResponseDTO(registro);
+    }
+
     @Transactional
     public void deletar(UUID registroId, Usuario executor){
 
