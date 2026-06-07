@@ -3,6 +3,7 @@ package com.example.arbor.service;
 import com.example.arbor.dto.request.AlterarSenhaRequestDTO;
 import com.example.arbor.dto.request.AtualizarPerfilRequestDTO;
 import com.example.arbor.dto.request.AtualizarUsuarioAdminRequestDTO;
+import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.PageResponseDTO;
 import com.example.arbor.dto.response.UsuarioPerfilResponseDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
@@ -65,6 +66,20 @@ class UsuarioServiceTest {
         assertThat(response.limit()).isEqualTo(20);
         assertThat(response.total()).isEqualTo(1);
         assertThat(response.items().getFirst().perfilAcesso()).isEqualTo(Perfil.PESQUISADOR);
+    }
+
+    @Test
+    void listarTodosDeveRetornarPaginaParaAdministrador() {
+        Usuario executor = usuario(Perfil.ADMINISTRADOR);
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
+
+        when(repository.findAll(anySpecification(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(usuario)));
+
+        PageResponseDTO<UsuarioResponseDTO> response = service.listarTodos(
+                null, null, null, 0, 20, executor);
+
+        assertThat(response.items()).hasSize(1);
     }
 
     @Test
@@ -157,6 +172,65 @@ class UsuarioServiceTest {
     }
 
     @Test
+    void administradorDevePoderCriarGestor() {
+        Usuario executor = usuario(Perfil.ADMINISTRADOR);
+        UsuarioRequestDTO dto = novoUsuario(Perfil.GESTOR);
+        when(repository.existsByEmail(dto.email())).thenReturn(false);
+        when(passwordEncoder.encode(dto.senha())).thenReturn("senha-criptografada");
+        when(repository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UsuarioResponseDTO response = service.salvar(dto, executor);
+
+        assertThat(response.perfilAcesso()).isEqualTo(Perfil.GESTOR);
+    }
+
+    @Test
+    void gestorDevePoderCriarPesquisador() {
+        Usuario executor = usuario(Perfil.GESTOR);
+        UsuarioRequestDTO dto = novoUsuario(Perfil.PESQUISADOR);
+        when(repository.existsByEmail(dto.email())).thenReturn(false);
+        when(passwordEncoder.encode(dto.senha())).thenReturn("senha-criptografada");
+        when(repository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UsuarioResponseDTO response = service.salvar(dto, executor);
+
+        assertThat(response.perfilAcesso()).isEqualTo(Perfil.PESQUISADOR);
+    }
+
+    @Test
+    void gestorNaoDevePoderCriarOutroGestor() {
+        Usuario executor = usuario(Perfil.GESTOR);
+        UsuarioRequestDTO dto = novoUsuario(Perfil.GESTOR);
+
+        assertThatThrownBy(() -> service.salvar(dto, executor))
+                .isInstanceOf(AcessoNegadoException.class)
+                .hasMessage("Apenas administradores podem criar usuarios ou atribuir perfis administrativos.");
+    }
+
+    @Test
+    void gestorNaoDevePoderCriarAdministrador() {
+        Usuario executor = usuario(Perfil.GESTOR);
+        UsuarioRequestDTO dto = novoUsuario(Perfil.ADMINISTRADOR);
+
+        assertThatThrownBy(() -> service.salvar(dto, executor))
+                .isInstanceOf(AcessoNegadoException.class)
+                .hasMessage("Apenas administradores podem criar usuarios ou atribuir perfis administrativos.");
+    }
+
+    @Test
+    void gestorNaoDevePoderPromoverUsuarioParaGestor() {
+        Usuario executor = usuario(Perfil.GESTOR);
+        Usuario usuario = usuario(Perfil.PESQUISADOR);
+        AtualizarUsuarioAdminRequestDTO dto = new AtualizarUsuarioAdminRequestDTO(
+                null, null, Perfil.GESTOR, null);
+        when(repository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
+
+        assertThatThrownBy(() -> service.atualizarUsuario(usuario.getId(), dto, executor))
+                .isInstanceOf(AcessoNegadoException.class)
+                .hasMessage("Apenas administradores podem criar usuarios ou atribuir perfis administrativos.");
+    }
+
+    @Test
     void alterarMinhaSenhaDeveValidarSenhaAtualEInvalidarRefreshTokens() {
         Usuario usuario = usuario(Perfil.PESQUISADOR);
         AlterarSenhaRequestDTO dto = new AlterarSenhaRequestDTO("SenhaAtual1", "NovaSenha1", "NovaSenha1");
@@ -208,6 +282,14 @@ class UsuarioServiceTest {
         usuario.setRefreshTokenVersion(2);
         usuario.setAtivo(true);
         return usuario;
+    }
+
+    private UsuarioRequestDTO novoUsuario(Perfil perfil) {
+        return new UsuarioRequestDTO(
+                "Novo Usuario",
+                "novo@arbor.local",
+                "Senha123",
+                perfil);
     }
 
     @SuppressWarnings("unchecked")

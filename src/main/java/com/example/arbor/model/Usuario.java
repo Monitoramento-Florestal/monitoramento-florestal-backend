@@ -51,6 +51,12 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (perfilAcesso == Perfil.ADMINISTRADOR) {
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"),
+                    new SimpleGrantedAuthority("ROLE_GESTOR"));
+        }
+
         return List.of(new SimpleGrantedAuthority("ROLE_" + perfilAcesso.name()));
     }
 
