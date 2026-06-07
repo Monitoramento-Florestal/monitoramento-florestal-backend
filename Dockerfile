@@ -28,6 +28,6 @@ USER arbor
 EXPOSE 8080
 
 
-ENV JAVA_OPTS="-Xms256m -Xmx512m"
+ENV JAVA_OPTS="-Xms128m -Xmx384m"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
