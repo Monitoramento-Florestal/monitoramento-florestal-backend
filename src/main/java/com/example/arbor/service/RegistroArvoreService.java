@@ -163,6 +163,19 @@ public class RegistroArvoreService {
         return new RegistroNovaArvoreResponseDTO(registroRepository.save(registro));
     }
 
+    public List<RegistroResponseDTO> listarHistoricoPorArvore(UUID arvoreId) {
+
+        arvoreRepository.findByIdAndAtivaTrue(arvoreId)
+                .orElseThrow(() ->
+                        new RuntimeException("Árvore ativa não encontrada"));
+
+        return registroRepository
+                .findByArvoreIdOrderByVersaoDesc(arvoreId)
+                .stream()
+                .map(RegistroResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void deletar(UUID registroId, Usuario executor){
 

@@ -93,4 +93,13 @@ public class RegistroArvoreController {
         registroService.deletar(id, executor);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/trees/{treeId}/records")
+    @PreAuthorize("hasAnyRole('GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    public ResponseEntity<List<RegistroResponseDTO>> listarHistoricoPorArvore(
+            @PathVariable UUID treeId) {
+
+        return ResponseEntity.ok(
+                registroService.listarHistoricoPorArvore(treeId)
+        );
+    }
 }

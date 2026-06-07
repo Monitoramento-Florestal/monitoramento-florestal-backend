@@ -39,6 +39,9 @@ public class RegistroArvore {
     @Column(name = "data_coleta")
     private LocalDateTime dataColeta;
 
+    @Column(name = "versao", nullable = false)
+    private Integer versao;
+
     @ManyToOne
     @JoinColumn(name = "arvore")
     private Arvore arvore;
