@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, UUID> {
 
@@ -84,5 +85,10 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
             "alvosSensiveis",
             "manejo.acoes"
     })
-    List<RegistroArvore> findByArvoreIdOrderByDataColetaDesc(UUID id);
+   List<RegistroArvore> findByArvoreIdOrderByDataColetaDesc(UUID id);
+
+Optional<RegistroArvore> findTopByArvoreIdAndStatusOrderByVersaoDesc(
+        UUID arvoreId,
+        StatusRegistro status
+);
 }

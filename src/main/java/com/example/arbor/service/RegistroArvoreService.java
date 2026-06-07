@@ -196,6 +196,24 @@ public class RegistroArvoreService {
         return new RegistroNovaArvoreResponseDTO(registroRepository.save(registro));
     }
 
+    public RegistroResponseDTO buscarRegistroVigenteDTO(UUID arvoreId) {
+
+        RegistroArvore registro = buscarRegistroVigente(arvoreId);
+
+        return registro == null
+                ? null
+                : new RegistroResponseDTO(registro);
+    }
+    public RegistroArvore buscarRegistroVigente(UUID arvoreId) {
+
+        return registroRepository
+                .findTopByArvoreIdAndStatusOrderByVersaoDesc(
+                        arvoreId,
+                        StatusRegistro.APROVADO
+                )
+                .orElse(null);
+    }
+
     @Transactional
     public void deletar(UUID registroId, Usuario executor) {
         RegistroArvore registro = registroRepository.findById(registroId)
