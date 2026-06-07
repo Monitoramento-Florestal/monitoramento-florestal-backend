@@ -2,7 +2,11 @@ package com.example.arbor.model.enums;
 
 public enum Perfil {
     ADMINISTRADOR,
-    GESTOR, //--> Mudei pra como a gente decidiu organizar os perfis(em ordem hierárquica), é bom conferir se os usos condizem ainda
+    GESTOR,
     PESQUISADOR,
-    PUBLICO_GERAL
+    PUBLICO_GERAL;
+
+    public boolean isAdministrativo() {
+        return this == ADMINISTRADOR || this == GESTOR;
+    }
 }

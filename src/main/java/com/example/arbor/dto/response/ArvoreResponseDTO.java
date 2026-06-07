@@ -5,6 +5,7 @@ import com.example.arbor.model.Conflito;
 import com.example.arbor.model.Manejo;
 import com.example.arbor.model.enums.*;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -50,9 +51,9 @@ public record ArvoreResponseDTO(
                 arvore.getCopaAtual(),
                 arvore.getEstadoGeral(),
                 arvore.getVigor(),
-                arvore.getProblemasCopa(),
-                arvore.getProblemasTronco(),
-                arvore.getProblemasRaiz(),
+                copySet(arvore.getProblemasCopa()),
+                copySet(arvore.getProblemasTronco()),
+                copySet(arvore.getProblemasRaiz()),
                 arvore.getEstruturaTronco(),
                 arvore.getEstruturaBase(),
                 arvore.getEstruturaCopa(),
@@ -61,11 +62,43 @@ public record ArvoreResponseDTO(
                 arvore.getFluxoPedestre(),
                 arvore.getFluxoAutomovel(),
                 arvore.getTipoVia(),
-                arvore.getAlvosPotenciais(),
-                arvore.getAlvosSensiveis(),
-                arvore.getConflito(),
-                arvore.getManejo(),
+                copySet(arvore.getAlvosPotenciais()),
+                copySet(arvore.getAlvosSensiveis()),
+                copyConflito(arvore.getConflito()),
+                copyManejo(arvore.getManejo()),
                 arvore.getObservacoes()
+        );
+    }
+
+    private static <T> Set<T> copySet(Set<T> source) {
+        if (source == null) {
+            return null;
+        }
+
+        return new LinkedHashSet<>(source);
+    }
+
+    private static Conflito copyConflito(Conflito source) {
+        if (source == null) {
+            return null;
+        }
+
+        return new Conflito(
+                source.getFiacao(),
+                source.getCalcada(),
+                source.getIluminacao(),
+                source.getEdificacao()
+        );
+    }
+
+    private static Manejo copyManejo(Manejo source) {
+        if (source == null) {
+            return null;
+        }
+
+        return new Manejo(
+                copySet(source.getAcoes()),
+                source.getPrioridade()
         );
     }
 }
