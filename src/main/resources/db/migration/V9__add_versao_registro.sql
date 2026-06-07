@@ -1,0 +1,2 @@
+ALTER TABLE tb_registro_arvore
+    ADD COLUMN versao INTEGER NOT NULL DEFAULT 1;

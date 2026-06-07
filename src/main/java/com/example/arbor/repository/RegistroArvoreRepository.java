@@ -87,8 +87,10 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
     })
    List<RegistroArvore> findByArvoreIdOrderByDataColetaDesc(UUID id);
 
-Optional<RegistroArvore> findTopByArvoreIdAndStatusOrderByVersaoDesc(
-        UUID arvoreId,
-        StatusRegistro status
-);
+    Optional<RegistroArvore> findTopByArvoreIdOrderByVersaoDesc(UUID arvoreId);
+
+    Optional<RegistroArvore> findTopByArvoreIdAndStatusOrderByVersaoDesc(
+            UUID arvoreId,
+            StatusRegistro status
+    );
 }
