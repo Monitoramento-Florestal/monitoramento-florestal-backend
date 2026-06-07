@@ -8,6 +8,7 @@ import com.example.arbor.model.RegistroArvore;
 import com.example.arbor.model.enums.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -64,9 +65,9 @@ public record RegistroResponseDTO(
 
                 registro.getEstadoGeral(),
                 registro.getVigor(),
-                registro.getProblemasCopa(),
-                registro.getProblemasTronco(),
-                registro.getProblemasRaiz(),
+                copySet(registro.getProblemasCopa()),
+                copySet(registro.getProblemasTronco()),
+                copySet(registro.getProblemasRaiz()),
 
                 registro.getEstruturaTronco(),
                 registro.getEstruturaBase(),
@@ -76,11 +77,43 @@ public record RegistroResponseDTO(
                 registro.getFluxoPedestre(),
                 registro.getFluxoAutomovel(),
                 registro.getTipoVia(),
-                registro.getAlvosPotenciais(),
-                registro.getAlvosSensiveis(),
-                registro.getConflito(),
-                registro.getManejo(),
+                copySet(registro.getAlvosPotenciais()),
+                copySet(registro.getAlvosSensiveis()),
+                copyConflito(registro.getConflito()),
+                copyManejo(registro.getManejo()),
                 registro.getObservacoes()
+        );
+    }
+
+    private static <T> Set<T> copySet(Set<T> source) {
+        if (source == null) {
+            return null;
+        }
+
+        return new LinkedHashSet<>(source);
+    }
+
+    private static Conflito copyConflito(Conflito source) {
+        if (source == null) {
+            return null;
+        }
+
+        return new Conflito(
+                source.getFiacao(),
+                source.getCalcada(),
+                source.getIluminacao(),
+                source.getEdificacao()
+        );
+    }
+
+    private static Manejo copyManejo(Manejo source) {
+        if (source == null) {
+            return null;
+        }
+
+        return new Manejo(
+                copySet(source.getAcoes()),
+                source.getPrioridade()
         );
     }
 }
