@@ -1,12 +1,9 @@
 package com.example.arbor.config;
 
-import com.example.arbor.exception.ApiErrorResponse;
-import com.example.arbor.repository.UsuarioRepository;
-import com.example.arbor.security.JwtAuthFilter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Map;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,10 +22,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.Map;
+import com.example.arbor.exception.ApiErrorResponse;
+import com.example.arbor.repository.UsuarioRepository;
+import com.example.arbor.security.JwtAuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -47,10 +50,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            AuthenticationProvider authenticationProvider,
-            JwtAuthFilter jwtAuthFilter) throws Exception {
+        HttpSecurity http,
+        AuthenticationProvider authenticationProvider,
+        JwtAuthFilter jwtAuthFilter,
+        CorsConfigurationSource corsConfigurationSource) throws Exception {
+
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST,
