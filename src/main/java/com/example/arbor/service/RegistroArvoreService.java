@@ -15,8 +15,10 @@ import com.example.arbor.repository.ArvoreRepository;
 import com.example.arbor.repository.RegistroArvoreRepository;
 import com.example.arbor.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -87,10 +89,18 @@ public class RegistroArvoreService {
 
             Arvore arvoreSalva = arvoreRepository.save(arvore);
             registro.setArvore(arvoreSalva);
+
+            // Nova árvore aprovada começa na versão 1
+            registro.setVersao(1);
         } else {
             Arvore arvoreExistente = registro.getArvore();
             atributosArvore(registro, arvoreExistente);
             arvoreRepository.save(arvoreExistente);
+
+            // Garante versão calculada ao aprovar registro de árvore existente
+            if (registro.getVersao() == null) {
+                registro.setVersao(calcularProximaVersao(arvoreExistente.getId()));
+            }
         }
 
         return new RegistroResponseDTO(registroRepository.save(registro));
@@ -129,6 +139,9 @@ public class RegistroArvoreService {
         registro.setPesquisador(pesquisadorPersistido);
         registro.setDataColeta(LocalDateTime.now());
         registro.setArvore(arvore);
+        // Calcula versão automaticamente ao cadastrar
+        registro.setVersao(calcularProximaVersao(arvore.getId()));
+
         atributosRegistro(
                 registro,
                 dto.alturaColetada(),
@@ -170,6 +183,9 @@ public class RegistroArvoreService {
         registro.setReferencia(dto.referencia());
         registro.setPesquisador(pesquisadorPersistido);
         registro.setDataColeta(LocalDateTime.now());
+        // Nova árvore sempre começa na versão 1
+        registro.setVersao(1);
+
         atributosRegistro(
                 registro,
                 dto.alturaColetada(),
@@ -199,21 +215,43 @@ public class RegistroArvoreService {
     }
 
     public RegistroResponseDTO buscarRegistroVigenteDTO(UUID arvoreId) {
-
         RegistroArvore registro = buscarRegistroVigente(arvoreId);
-
-        return registro == null
-                ? null
-                : new RegistroResponseDTO(registro);
+        return registro == null ? null : new RegistroResponseDTO(registro);
     }
-    public RegistroArvore buscarRegistroVigente(UUID arvoreId) {
 
+    public RegistroArvore buscarRegistroVigente(UUID arvoreId) {
         return registroRepository
                 .findTopByArvoreIdAndStatusOrderByVersaoDesc(
                         arvoreId,
                         StatusRegistro.APROVADO
                 )
                 .orElse(null);
+    }
+
+    // ← NOVO: histórico ordenado por versão
+    @Transactional(readOnly = true)
+    public List<RegistroResponseDTO> listarHistoricoPorArvore(UUID arvoreId) {
+        arvoreRepository.findByIdAndAtivaTrue(arvoreId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Árvore ativa não encontrada"));
+        return registroRepository
+                .findByArvoreIdOrderByVersaoDesc(arvoreId)
+                .stream()
+                .map(RegistroResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    // ← NOVO: detalhe com validação de pertencimento
+    @Transactional(readOnly = true)
+    public RegistroResponseDTO buscarRegistroDaArvore(UUID arvoreId, UUID recordId) {
+        arvoreRepository.findByIdAndAtivaTrue(arvoreId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Árvore ativa não encontrada"));
+        RegistroArvore registro = registroRepository
+                .findByIdAndArvoreId(recordId, arvoreId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Registro não pertence à árvore informada"));
+        return new RegistroResponseDTO(registro);
     }
 
     @Transactional
@@ -230,6 +268,14 @@ public class RegistroArvoreService {
         }
 
         registroRepository.delete(registro);
+    }
+
+    // ← NOVO: calcula próxima versão sem filtro de status
+    private int calcularProximaVersao(UUID arvoreId) {
+        return registroRepository
+                .findTopByArvoreIdOrderByVersaoDesc(arvoreId)
+                .map(r -> r.getVersao() + 1)
+                .orElse(1);
     }
 
     private void atributosArvore(RegistroArvore registro, Arvore arvore) {
@@ -314,18 +360,12 @@ public class RegistroArvoreService {
     }
 
     private <T> Set<T> copySet(Set<T> source) {
-        if (source == null) {
-            return null;
-        }
-
+        if (source == null) return null;
         return new LinkedHashSet<>(source);
     }
 
     private Conflito copyConflito(Conflito source) {
-        if (source == null) {
-            return null;
-        }
-
+        if (source == null) return null;
         return new Conflito(
                 source.getFiacao(),
                 source.getCalcada(),
@@ -335,10 +375,7 @@ public class RegistroArvoreService {
     }
 
     private Manejo copyManejo(Manejo source) {
-        if (source == null) {
-            return null;
-        }
-
+        if (source == null) return null;
         Manejo manejo = new Manejo();
         manejo.setAcoes(copySet(source.getAcoes()));
         manejo.setPrioridade(source.getPrioridade());

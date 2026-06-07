@@ -85,7 +85,7 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
             "alvosSensiveis",
             "manejo.acoes"
     })
-   List<RegistroArvore> findByArvoreIdOrderByDataColetaDesc(UUID id);
+    List<RegistroArvore> findByArvoreIdOrderByDataColetaDesc(UUID id);
 
     Optional<RegistroArvore> findTopByArvoreIdOrderByVersaoDesc(UUID arvoreId);
 
@@ -93,4 +93,42 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
             UUID arvoreId,
             StatusRegistro status
     );
+
+    @EntityGraph(attributePaths = {
+            "pesquisador",
+            "administradorResponsavel",
+            "arvore",
+            "arvore.problemasCopa",
+            "arvore.problemasTronco",
+            "arvore.problemasRaiz",
+            "arvore.alvosPotenciais",
+            "arvore.alvosSensiveis",
+            "arvore.manejo.acoes",
+            "problemasCopa",
+            "problemasTronco",
+            "problemasRaiz",
+            "alvosPotenciais",
+            "alvosSensiveis",
+            "manejo.acoes"
+    })
+    List<RegistroArvore> findByArvoreIdOrderByVersaoDesc(UUID arvoreId);
+
+    @EntityGraph(attributePaths = {
+            "pesquisador",
+            "administradorResponsavel",
+            "arvore",
+            "arvore.problemasCopa",
+            "arvore.problemasTronco",
+            "arvore.problemasRaiz",
+            "arvore.alvosPotenciais",
+            "arvore.alvosSensiveis",
+            "arvore.manejo.acoes",
+            "problemasCopa",
+            "problemasTronco",
+            "problemasRaiz",
+            "alvosPotenciais",
+            "alvosSensiveis",
+            "manejo.acoes"
+    })
+    Optional<RegistroArvore> findByIdAndArvoreId(UUID recordId, UUID arvoreId);
 }

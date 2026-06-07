@@ -58,16 +58,16 @@ public class RegistroArvoreController {
     @PutMapping("/{id}/aprovar")
     @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<RegistroResponseDTO> aprovar(@PathVariable UUID id,
-                                       @RequestBody AprovarRegistroRequestDTO dto,
-                                       @AuthenticationPrincipal Usuario executor){
+                                                       @RequestBody AprovarRegistroRequestDTO dto,
+                                                       @AuthenticationPrincipal Usuario executor){
         return ResponseEntity.ok(registroService.aprovarRegistro(id, executor));
     }
 
     @PutMapping("/{id}/recusar")
     @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<RegistroResponseDTO> recusar(@PathVariable UUID id,
-                                       @RequestBody RecusarRegistroRequestDTO dto,
-                                       @AuthenticationPrincipal Usuario executor){
+                                                       @RequestBody RecusarRegistroRequestDTO dto,
+                                                       @AuthenticationPrincipal Usuario executor){
         return ResponseEntity.ok(registroService.recusarRegistro(id, executor, dto));
     }
 
@@ -92,5 +92,26 @@ public class RegistroArvoreController {
                                                        @AuthenticationPrincipal Usuario executor){
         registroService.deletar(id, executor);
         return ResponseEntity.noContent().build();
+    }
+
+    // ← NOVO: histórico de registros por árvore
+    @GetMapping("/trees/{treeId}/records")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    public ResponseEntity<List<RegistroResponseDTO>> listarHistoricoPorArvore(
+            @PathVariable UUID treeId) {
+        return ResponseEntity.ok(
+                registroService.listarHistoricoPorArvore(treeId)
+        );
+    }
+
+    // ← NOVO: detalhe de registro validando pertencimento à árvore
+    @GetMapping("/trees/{treeId}/records/{recordId}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
+    public ResponseEntity<RegistroResponseDTO> buscarRegistroDaArvore(
+            @PathVariable UUID treeId,
+            @PathVariable UUID recordId) {
+        return ResponseEntity.ok(
+                registroService.buscarRegistroDaArvore(treeId, recordId)
+        );
     }
 }
