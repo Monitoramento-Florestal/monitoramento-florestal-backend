@@ -1,0 +1,298 @@
+package com.example.arbor.service;
+
+import com.example.arbor.dto.map.MapTreeDetailDTO;
+import com.example.arbor.dto.map.MapTreesResponseDTO;
+import com.example.arbor.exception.RecursoNaoEncontradoException;
+import com.example.arbor.exception.RequisicaoInvalidaException;
+import com.example.arbor.model.Arvore;
+import com.example.arbor.model.enums.EstadoGeral;
+import com.example.arbor.model.enums.Vigor;
+import com.example.arbor.repository.ArvoreRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class MapServiceTest {
+
+    @Mock
+    private ArvoreRepository arvoreRepository;
+
+    @InjectMocks
+    private MapService service;
+
+    // ----------------------------------------------------------------
+    // GET /api/map/trees — modo "trees" (pins individuais)
+    // ----------------------------------------------------------------
+
+    @Test
+    void getMapTreesDeveRetornarModeTreesQuandoTotalAbaixoDoLimiteEZoomAlto() {
+        Arvore arvore = arvoreComLocalizacao();
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(false))).thenReturn(50L);
+        when(arvoreRepository.findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), isNull(), eq(false), anyInt()))
+                .thenReturn(List.of(arvore));
+
+        MapTreesResponseDTO resposta = service.getMapTrees(
+                -35.0, -8.1, -34.9, -8.0,
+                15, null, null, null, false, null);
+
+        assertThat(resposta.mode()).isEqualTo("trees");
+        assertThat(resposta.totalInView()).isEqualTo(50L);
+        assertThat(resposta.items()).hasSize(1);
+        assertThat(resposta.clusters()).isEmpty();
+    }
+
+    @Test
+    void getMapTreesDeveRetornarModeClusterQuandoTotalUltrapassaLimite() {
+        // Retorna acima do threshold de 200
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(false))).thenReturn(250L);
+        // Retorno de clusters: [lat, lng, count]
+        when(arvoreRepository.findClustersWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                eq(false), anyDouble()))
+                .thenReturn(List.of(
+                        new Object[]{-8.05, -34.88, 150L},
+                        new Object[]{-8.06, -34.87, 100L}
+                ));
+
+        MapTreesResponseDTO resposta = service.getMapTrees(
+                -35.0, -8.1, -34.9, -8.0,
+                15, null, null, null, false, null);
+
+        assertThat(resposta.mode()).isEqualTo("cluster");
+        assertThat(resposta.clusters()).hasSize(2);
+        assertThat(resposta.items()).isEmpty();
+        assertThat(resposta.totalInView()).isEqualTo(250L);
+    }
+
+    @Test
+    void getMapTreesDeveRetornarModeClusterQuandoZoomBaixo() {
+        // Total abaixo do threshold, mas zoom baixo força cluster
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(false))).thenReturn(10L);
+        when(arvoreRepository.findClustersWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                eq(false), anyDouble()))
+                .thenReturn(Collections.singletonList(
+                        new Object[]{-8.05, -34.88, 10L}
+                ));
+
+        MapTreesResponseDTO resposta = service.getMapTrees(
+                -35.0, -8.1, -34.9, -8.0,
+                10, null, null, null, false, null);  // zoom 10 < 14
+
+        assertThat(resposta.mode()).isEqualTo("cluster");
+    }
+
+    @Test
+    void getMapTreesDeveUsarLimitePadraoQuandoNaoInformado() {
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(false))).thenReturn(5L);
+        when(arvoreRepository.findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), isNull(), eq(false), eq(MapService.MAP_TREES_DEFAULT_LIMIT)))
+                .thenReturn(List.of());
+
+        service.getMapTrees(-35.0, -8.1, -34.9, -8.0, 15, null, null, null, false, null);
+
+        verify(arvoreRepository).findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), isNull(), eq(false), eq(MapService.MAP_TREES_DEFAULT_LIMIT));
+    }
+
+    @Test
+    void getMapTreesDeveRespeitarLimiteMaximoAbsoluto() {
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(false))).thenReturn(5L);
+        when(arvoreRepository.findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), isNull(), eq(false), eq(MapService.MAP_TREES_MAX_LIMIT)))
+                .thenReturn(List.of());
+
+        // Pede 9999 — deve ser clampeado para MAP_TREES_MAX_LIMIT (500)
+        service.getMapTrees(-35.0, -8.1, -34.9, -8.0, 15, null, null, null, false, 9999);
+
+        verify(arvoreRepository).findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), isNull(), eq(false), eq(MapService.MAP_TREES_MAX_LIMIT));
+    }
+
+    @Test
+    void getMapTreesDevePassarFiltrosParaRepositorio() {
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                eq("BOM"), eq("Ficus"), eq(false))).thenReturn(2L);
+        when(arvoreRepository.findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                eq("BOM"), eq("Ficus"), eq("ficus"), eq(false), anyInt()))
+                .thenReturn(List.of());
+
+        service.getMapTrees(-35.0, -8.1, -34.9, -8.0, 15, "BOM", "ficus", "Ficus", false, null);
+
+        verify(arvoreRepository).countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                eq("BOM"), eq("Ficus"), eq(false));
+    }
+
+    @Test
+    void getMapTreesDevePassarIncludeCutTrueParaRepositorio() {
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(true))).thenReturn(0L);
+        when(arvoreRepository.findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), isNull(), eq(true), anyInt()))
+                .thenReturn(List.of());
+
+        service.getMapTrees(-35.0, -8.1, -34.9, -8.0, 15, null, null, null, true, null);
+
+        verify(arvoreRepository).countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(true));
+    }
+
+    // ----------------------------------------------------------------
+    // GET /api/map/trees — respostas não contêm Point JTS
+    // ----------------------------------------------------------------
+
+    @Test
+    void getMapTreesDeveRetornarLatLngComoDoubleENaoObjectJTS() {
+        Arvore arvore = arvoreComLocalizacao();
+        when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), eq(false))).thenReturn(1L);
+        when(arvoreRepository.findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
+                isNull(), isNull(), isNull(), eq(false), anyInt()))
+                .thenReturn(List.of(arvore));
+
+        MapTreesResponseDTO resposta = service.getMapTrees(
+                -35.0, -8.1, -34.9, -8.0, 15, null, null, null, false, null);
+
+        // O MapTreeDTO deve ter lat/lng como Double — sem JTS Point
+        assertThat(resposta.items()).hasSize(1);
+        assertThat(resposta.items().get(0).lat()).isInstanceOf(Double.class);
+        assertThat(resposta.items().get(0).lng()).isInstanceOf(Double.class);
+        assertThat(resposta.items().get(0).lat()).isEqualTo(-8.05);
+        assertThat(resposta.items().get(0).lng()).isEqualTo(-34.88);
+    }
+
+    // ----------------------------------------------------------------
+    // GET /api/map/trees — validação de bbox
+    // ----------------------------------------------------------------
+
+    @Test
+    void getMapTreesDeveLancarQuandoLngForaDosLimites() {
+        assertThatThrownBy(() -> service.getMapTrees(
+                -200.0, -8.1, -34.9, -8.0, 15, null, null, null, false, null))
+                .isInstanceOf(RequisicaoInvalidaException.class);
+    }
+
+    @Test
+    void getMapTreesDeveLancarQuandoLatForaDosLimites() {
+        assertThatThrownBy(() -> service.getMapTrees(
+                -35.0, -100.0, -34.9, -8.0, 15, null, null, null, false, null))
+                .isInstanceOf(RequisicaoInvalidaException.class);
+    }
+
+    @Test
+    void getMapTreesDeveLancarQuandoMinLngMaiorQueMaxLng() {
+        assertThatThrownBy(() -> service.getMapTrees(
+                -34.9, -8.1, -35.0, -8.0, 15, null, null, null, false, null))
+                .isInstanceOf(RequisicaoInvalidaException.class)
+                .hasMessageContaining("minLng");
+    }
+
+    @Test
+    void getMapTreesDeveLancarQuandoMinLatMaiorQueMaxLat() {
+        assertThatThrownBy(() -> service.getMapTrees(
+                -35.0, -8.0, -34.9, -8.1, 15, null, null, null, false, null))
+                .isInstanceOf(RequisicaoInvalidaException.class)
+                .hasMessageContaining("minLat");
+    }
+
+    @Test
+    void getMapTreesDeveLancarQuandoBboxMuitoGrande() {
+        assertThatThrownBy(() -> service.getMapTrees(
+                -100.0, -8.1, 10.0, -8.0, 15, null, null, null, false, null))
+                .isInstanceOf(RequisicaoInvalidaException.class)
+                .hasMessageContaining("bbox");
+    }
+
+    // ----------------------------------------------------------------
+    // GET /api/map/trees/{treeId}/detail
+    // ----------------------------------------------------------------
+
+    @Test
+    void getMapTreeDetailDeveRetornarDTOSemHistoricoCompleto() {
+        Arvore arvore = arvoreComLocalizacao();
+        when(arvoreRepository.findByIdAndAtivaTrue(arvore.getId()))
+                .thenReturn(Optional.of(arvore));
+
+        MapTreeDetailDTO detalhe = service.getMapTreeDetail(arvore.getId());
+
+        assertThat(detalhe.id()).isEqualTo(arvore.getId());
+        assertThat(detalhe.codigo()).isEqualTo("ARV-00001");
+        assertThat(detalhe.especie()).isEqualTo("Ficus benjamina");
+        assertThat(detalhe.lat()).isEqualTo(-8.05);
+        assertThat(detalhe.lng()).isEqualTo(-34.88);
+        // currentRecord é null enquanto Pessoa 3 não entrega o contrato
+        assertThat(detalhe.currentRecord()).isNull();
+    }
+
+    @Test
+    void getMapTreeDetailDeveLancar404QuandoArvoreInativa() {
+        UUID id = UUID.randomUUID();
+        when(arvoreRepository.findByIdAndAtivaTrue(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getMapTreeDetail(id))
+                .isInstanceOf(RecursoNaoEncontradoException.class)
+                .hasMessageContaining(id.toString());
+    }
+
+    @Test
+    void getMapTreeDetailDeveRetornarLatLngComoDoubleENaoObjectJTS() {
+        Arvore arvore = arvoreComLocalizacao();
+        when(arvoreRepository.findByIdAndAtivaTrue(arvore.getId()))
+                .thenReturn(Optional.of(arvore));
+
+        MapTreeDetailDTO detalhe = service.getMapTreeDetail(arvore.getId());
+
+        assertThat(detalhe.lat()).isInstanceOf(Double.class);
+        assertThat(detalhe.lng()).isInstanceOf(Double.class);
+    }
+
+    // ----------------------------------------------------------------
+    // Builders de fixture
+    // ----------------------------------------------------------------
+
+    /**
+     * Árvore com localização simulada via override dos helpers toLat()/toLng().
+     * Como o Point JTS não pode ser instanciado facilmente sem GeometryFactory,
+     * usamos uma subclasse anónima que sobrepõe os helpers — exactamente o que
+     * os DTOs chamam. Isto garante que o teste verifica o caminho real do código.
+     */
+    private Arvore arvoreComLocalizacao() {
+        Arvore arvore = new Arvore() {
+            @Override public Double toLat() { return -8.05; }
+            @Override public Double toLng() { return -34.88; }
+            @Override public boolean isGeolocalizada() { return true; }
+        };
+        arvore.setId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        arvore.setCodigo("ARV-00001");
+        arvore.setEspecie("Ficus benjamina");
+        arvore.setNomeComum("Ficus");
+        arvore.setBairro("Boa Viagem");
+        arvore.setRua("Av. Boa Viagem");
+        arvore.setAtiva(true);
+        arvore.setAlturaAtual(5.0);
+        arvore.setDapAtual(0.15);
+        arvore.setCopaAtual(3.0);
+        arvore.setEstadoGeral(EstadoGeral.BOM);
+        arvore.setVigor(Vigor.ALTO);
+        arvore.setProblemasCopa(Set.of());
+        arvore.setProblemasTronco(Set.of());
+        arvore.setProblemasRaiz(Set.of());
+        arvore.setAlvosPotenciais(Set.of());
+        arvore.setAlvosSensiveis(Set.of());
+        return arvore;
+    }
+}
