@@ -3,7 +3,7 @@ package com.example.arbor.model;
 import com.example.arbor.model.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
-import org.locationtech.jts.geom.Point; // Lembrete: import do JTS para o PostGIS
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,8 +24,17 @@ public class Arvore {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "codigo", nullable = false, unique = true, updatable = false)
+    private String codigo;
+
     @Column(name = "especie", nullable = false)
     private String especie;
+
+    @Column(name = "nome_comum")
+    private String nomeComum;
+
+    @Column(name = "localizacao", columnDefinition = "GEOMETRY(Point, 4326)")
+    private Point localizacao;
 
     @Column(name = "bairro")
     private String bairro;
@@ -124,11 +133,32 @@ public class Arvore {
     @Embedded
     private Manejo manejo;
 
-    //verificar
     @Column(name = "observacoes")
     private String observacoes;
 
     @Column(nullable = false)
     private Boolean ativa = true;
 
+    /**
+     * Retorna a latitude do ponto geográfico, ou null se não geolocalizada.
+     * Use este método para popular campos lat em DTOs públicos.
+     */
+    public Double toLat() {
+        return localizacao != null ? localizacao.getY() : null;
+    }
+
+    /**
+     * Retorna a longitude do ponto geográfico, ou null se não geolocalizada.
+     * Use este método para popular campos lng em DTOs públicos.
+     */
+    public Double toLng() {
+        return localizacao != null ? localizacao.getX() : null;
+    }
+
+    /**
+     * Indica se a árvore possui coordenadas geográficas registradas.
+     */
+    public boolean isGeolocalizada() {
+        return localizacao != null;
+    }
 }
