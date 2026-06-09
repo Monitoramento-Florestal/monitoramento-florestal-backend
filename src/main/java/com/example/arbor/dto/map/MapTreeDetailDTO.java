@@ -28,7 +28,8 @@ public record MapTreeDetailDTO(
         String      observacoes,
 
         // TODO Pessoa 3: substituir Object por RegistroResumoDTO
-        Object      currentRecord
+        Object      currentRecord,
+        String      fotoUrl
 ) {
     /** Construtor sem currentRecord — usado enquanto Pessoa 3 não entrega o contrato. */
     public MapTreeDetailDTO(Arvore a) {
@@ -45,7 +46,8 @@ public record MapTreeDetailDTO(
                 a.getEstadoGeral(),
                 a.getVigor(),
                 a.getObservacoes(),
-                null
+                null,
+                a.hasFoto() ? "/api/arvores/" + a.getId() + "/foto" : null
         );
     }
 }
