@@ -68,14 +68,23 @@ public class MapService {
 
         long totalInView = arvoreRepository.countWithinBbox(
                 minLng, minLat, maxLng, maxLat,
-                status, species, includeCut);
+                status, species, search, includeCut);
 
         boolean usarCluster = totalInView > MAP_CLUSTER_THRESHOLD || efectiveZoom < 14;
 
         if (usarCluster) {
             double gridSize = calcularGridSize(efectiveZoom);
             List<MapClusterDTO> clusters = arvoreRepository
-                    .findClustersWithinBbox(minLng, minLat, maxLng, maxLat, includeCut, gridSize)
+                    .findClustersWithinBbox(
+                            minLng,
+                            minLat,
+                            maxLng,
+                            maxLat,
+                            status,
+                            species,
+                            search,
+                            includeCut,
+                            gridSize)
                     .stream()
                     .map(row -> new MapClusterDTO(
                             ((Number) row[0]).doubleValue(),  // lat (AVG Y)

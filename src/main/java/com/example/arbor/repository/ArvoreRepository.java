@@ -145,6 +145,10 @@ public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
               AND (:status IS NULL OR UPPER(a.estado_geral) = UPPER(CAST(:status AS VARCHAR)))
               AND (:species IS NULL OR LOWER(a.especie) LIKE LOWER(CONCAT('%', CAST(:species AS VARCHAR), '%')))
               AND (:includeCut = true OR UPPER(a.estado_geral) != 'MORTA')
+              AND (:search IS NULL
+                   OR LOWER(a.especie) LIKE LOWER(CONCAT('%', CAST(:search AS VARCHAR), '%'))
+                   OR LOWER(COALESCE(a.nome_comum, '')) LIKE LOWER(CONCAT('%', CAST(:search AS VARCHAR), '%'))
+                   OR LOWER(COALESCE(a.codigo, '')) LIKE LOWER(CONCAT('%', CAST(:search AS VARCHAR), '%')))
             """,
             nativeQuery = true)
     long countWithinBbox(
@@ -154,6 +158,7 @@ public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
             @Param("maxLat")     double  maxLat,
             @Param("status")     String  status,
             @Param("species")    String  species,
+            @Param("search")     String  search,
             @Param("includeCut") boolean includeCut);
 
     @Query(value = """
@@ -168,7 +173,13 @@ public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
                     a.localizacao,
                     ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326)
                   )
+              AND (:status IS NULL OR UPPER(a.estado_geral) = UPPER(CAST(:status AS VARCHAR)))
+              AND (:species IS NULL OR LOWER(a.especie) LIKE LOWER(CONCAT('%', CAST(:species AS VARCHAR), '%')))
               AND (:includeCut = true OR UPPER(a.estado_geral) != 'MORTA')
+              AND (:search IS NULL
+                   OR LOWER(a.especie) LIKE LOWER(CONCAT('%', CAST(:search AS VARCHAR), '%'))
+                   OR LOWER(COALESCE(a.nome_comum, '')) LIKE LOWER(CONCAT('%', CAST(:search AS VARCHAR), '%'))
+                   OR LOWER(COALESCE(a.codigo, '')) LIKE LOWER(CONCAT('%', CAST(:search AS VARCHAR), '%')))
             GROUP BY
                 FLOOR(ST_X(a.localizacao) / :gridSize),
                 FLOOR(ST_Y(a.localizacao) / :gridSize)
@@ -179,6 +190,9 @@ public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
             @Param("minLat")     double  minLat,
             @Param("maxLng")     double  maxLng,
             @Param("maxLat")     double  maxLat,
+            @Param("status")     String  status,
+            @Param("species")    String  species,
+            @Param("search")     String  search,
             @Param("includeCut") boolean includeCut,
             @Param("gridSize")   double  gridSize);
 
