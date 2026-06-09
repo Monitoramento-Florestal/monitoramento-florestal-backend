@@ -40,7 +40,7 @@ public class SolicitacaoAprovacaoService {
     }
 
     public List<SolicitacaoAprovacao> buscarPorPesquisadorEStatus(ListItemAprovacaoResponseDTO dto) {
-        return solicitacaoRepository.findByPesquisadorIdEStatus(dto.pesquisadorId(), dto.status());
+        return solicitacaoRepository.findByPesquisadorIdAndStatus(dto.pesquisadorId(), dto.status());
     }
 
     public List<SolicitacaoAprovacao> buscarPorPesquisador(ListItemAprovacaoResponseDTO dto) {
@@ -100,7 +100,7 @@ public class SolicitacaoAprovacaoService {
 
         else if (pesquisadorFiltro != null && status != null) {
             solicitacoes = solicitacaoRepository
-                    .findByPesquisadorIdEStatus(pesquisadorFiltro, status);
+                    .findByPesquisadorIdAndStatus(pesquisadorFiltro, status);
         }
 
         else if (tipo != null) {
@@ -122,7 +122,7 @@ public class SolicitacaoAprovacaoService {
         else if (status != null) {
             if (pesquisadorFiltro != null) {
                 solicitacoes = solicitacaoRepository
-                        .findByPesquisadorIdEStatus(pesquisadorFiltro, status);
+                        .findByPesquisadorIdAndStatus(pesquisadorFiltro, status);
             } else {
                 solicitacoes = solicitacaoRepository
                         .findByStatusOrderByDataSubmissaoDesc(status);
