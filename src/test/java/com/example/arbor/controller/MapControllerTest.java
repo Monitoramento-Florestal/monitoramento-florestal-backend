@@ -34,10 +34,6 @@ class MapControllerTest {
     @InjectMocks
     private MapController controller;
 
-    // ----------------------------------------------------------------
-    // GET /api/map/trees — modo trees
-    // ----------------------------------------------------------------
-
     @Test
     void getMapTreesDeveRetornar200ComModeTreesDoService() {
         MapTreesResponseDTO resposta = MapTreesResponseDTO.ofTrees(3L, List.of(
@@ -146,10 +142,6 @@ class MapControllerTest {
         assertThat(item.lng()).isEqualTo(-34.88);
     }
 
-    // ----------------------------------------------------------------
-    // GET /api/map/trees/{treeId}/detail
-    // ----------------------------------------------------------------
-
     @Test
     void getMapTreeDetailDeveRetornar200ComDTODoService() {
         UUID id = UUID.randomUUID();
@@ -206,10 +198,6 @@ class MapControllerTest {
         verify(mapService).getMapTreeDetail(eq(id));
     }
 
-    // ----------------------------------------------------------------
-    // Builders de fixture
-    // ----------------------------------------------------------------
-
     private MapTreeDTO mapTreeDTO(double lat, double lng) {
         return new MapTreeDTO(
                 UUID.randomUUID(),
@@ -219,7 +207,7 @@ class MapControllerTest {
                 lat,
                 lng,
                 EstadoGeral.BOM,
-                null  // ultimaMedicao — aguarda Pessoa 3
+                null
         );
     }
 
@@ -237,7 +225,8 @@ class MapControllerTest {
                 EstadoGeral.BOM,
                 Vigor.ALTO,
                 null,
-                null   // currentRecord — aguarda Pessoa 3
+                null,
+                null
         );
     }
 }
