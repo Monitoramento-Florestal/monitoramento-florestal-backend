@@ -128,7 +128,7 @@ public class ArvoreController {
     }
 
     @PutMapping("/{id}/foto")
-    @PreAuthorize("hasAnyRole(ADMINISTRADOR,GESTOR,PESQUISADOR)")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR')")
     public ResponseEntity<Void> uploadFoto(
             @PathVariable UUID id,
             @RequestParam("file") MultipartFile file,
