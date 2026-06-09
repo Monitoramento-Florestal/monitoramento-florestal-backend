@@ -4,6 +4,8 @@ import com.example.arbor.model.enums.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import static org.hibernate.type.SqlTypes.BINARY;
 import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
@@ -137,8 +139,7 @@ public class Arvore {
     @Column(name = "observacoes")
     private String observacoes;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
+    @JdbcTypeCode(BINARY)
     @Column(name = "foto", columnDefinition = "BYTEA")
     @JsonIgnore
     private byte[] foto;
