@@ -40,7 +40,8 @@ public record ArvoreResponseDTO(
         Conflito conflito,
         Manejo manejo,
         String observacoes,
-        Object currentRecord
+        Object currentRecord,
+        String fotoUrl
 ) {
 
     public ArvoreResponseDTO(Arvore arvore) {
@@ -75,7 +76,8 @@ public record ArvoreResponseDTO(
                 copyConflito(arvore.getConflito()),
                 copyManejo(arvore.getManejo()),
                 arvore.getObservacoes(),
-                null  // currentRecord — aguarda RegistroResumoDTO da Pessoa 3
+                null,  // currentRecord
+                arvore.hasFoto() ? "/api/arvores/" + arvore.getId() + "/foto" : null
         );
     }
 

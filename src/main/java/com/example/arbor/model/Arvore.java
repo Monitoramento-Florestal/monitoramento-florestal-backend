@@ -1,6 +1,7 @@
 package com.example.arbor.model;
 
 import com.example.arbor.model.enums.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.locationtech.jts.geom.Point;
@@ -136,6 +137,15 @@ public class Arvore {
     @Column(name = "observacoes")
     private String observacoes;
 
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "foto", columnDefinition = "BYTEA")
+    @JsonIgnore
+    private byte[] foto;
+
+    @Column(name = "foto_content_type")
+    private String fotoContentType;
+
     @Column(nullable = false)
     private Boolean ativa = true;
 
@@ -147,17 +157,14 @@ public class Arvore {
         return localizacao != null ? localizacao.getY() : null;
     }
 
-    /**
-     * Retorna a longitude do ponto geográfico, ou null se não geolocalizada.
-     * Use este método para popular campos lng em DTOs públicos.
-     */
     public Double toLng() {
         return localizacao != null ? localizacao.getX() : null;
     }
 
-    /**
-     * Indica se a árvore possui coordenadas geográficas registradas.
-     */
+
+    public boolean hasFoto() {
+        return foto != null && foto.length > 0;
+    }
     public boolean isGeolocalizada() {
         return localizacao != null;
     }
