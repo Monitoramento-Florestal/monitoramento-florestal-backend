@@ -11,6 +11,8 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
 
     List<RegistroArvore> findByPesquisadorId(UUID id);
 
+    Long countByPesquisadorId(UUID id);
+
     List<RegistroArvore> findByStatusAndPesquisadorId(StatusRegistro status, UUID id);
 
     List<RegistroArvore> findByArvoreIdOrderByDataColetaDesc(UUID id);

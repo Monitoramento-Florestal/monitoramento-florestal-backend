@@ -28,30 +28,6 @@ public class SolicitacaoAprovacaoService {
     private final ArvoreRepository arvoreRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public List<SolicitacaoAprovacao> buscarPorStatus(ListItemAprovacaoResponseDTO dto) {
-        return solicitacaoRepository.findByStatus(dto.status());
-    }
-
-    public List<SolicitacaoAprovacao> buscarPorPesquisadorEStatus(ListItemAprovacaoResponseDTO dto) {
-        return solicitacaoRepository.findByPesquisadorIdEStatus(dto.pesquisadorId(), dto.status());
-    }
-
-    public List<SolicitacaoAprovacao> buscarPorPesquisador(ListItemAprovacaoResponseDTO dto) {
-        return solicitacaoRepository.findByPesquisadorId(dto.pesquisadorId());
-    }
-
-    public List<SolicitacaoAprovacao> buscarPorTipo(ListItemAprovacaoResponseDTO dto) {
-        return solicitacaoRepository.findByTipo(dto.tipo());
-    }
-
-    public List<SolicitacaoAprovacao> buscarPorDataSubmissao(ListItemAprovacaoResponseDTO dto) {
-        return solicitacaoRepository.findByDataSubmissao(dto.dataSubmissao());
-    }
-
-    public List<SolicitacaoAprovacao> listarPendentes() {
-        return solicitacaoRepository.findByStatusOrderByDataSubmissaoDesc(StatusRegistro.PENDENTE);
-    }
-
     public DetalheAprovacaoResponseDTO buscarPorId(UUID id) {
         SolicitacaoAprovacao solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Solicitação não encontrada"));
@@ -91,7 +67,7 @@ public class SolicitacaoAprovacaoService {
 
         else if (pesquisadorId != null && status != null) {
             solicitacoes = solicitacaoRepository
-                    .findByPesquisadorIdEStatus(pesquisadorId, status);
+                    .findByPesquisadorIdAndStatus(pesquisadorId, status);
         }
 
         else if (tipo != null) {
