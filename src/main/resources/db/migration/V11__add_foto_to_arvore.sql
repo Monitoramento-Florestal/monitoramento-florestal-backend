@@ -1,0 +1,3 @@
+ALTER TABLE tb_arvore
+    ADD COLUMN IF NOT EXISTS foto BYTEA,
+    ADD COLUMN IF NOT EXISTS foto_content_type VARCHAR(100);
