@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+import java.io.IOException;
 
 import java.util.List;
 import java.util.UUID;
@@ -106,5 +109,31 @@ public class ArvoreController {
             @AuthenticationPrincipal Usuario executor
     ) {
         return ResponseEntity.ok(arvoreService.atualizar(id, dto, executor));
+    }
+
+    @GetMapping("/{id}/foto")
+    public ResponseEntity<byte[]> buscarFoto(@PathVariable UUID id) {
+        byte[] foto = arvoreService.getFoto(id);
+
+        if (foto == null || foto.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String contentType = arvoreService.getFotoContentType(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        contentType != null ? contentType : "application/octet-stream"))
+                .body(foto);
+    }
+
+    @PutMapping("/{id}/foto")
+    @PreAuthorize("hasAnyRole(ADMINISTRADOR,GESTOR,PESQUISADOR)")
+    public ResponseEntity<Void> uploadFoto(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal Usuario executor) throws IOException {
+        arvoreService.salvarFoto(id, file.getBytes(), file.getContentType(), executor);
+        return ResponseEntity.noContent().build();
     }
 }

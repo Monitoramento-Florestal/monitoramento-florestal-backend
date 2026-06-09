@@ -16,6 +16,8 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -127,6 +129,34 @@ public class ArvoreService {
         return new ArvoreResponseDTO(repository.save(arvore));
     }
 
+
+    @Transactional
+    public void salvarFoto(UUID id, byte[] bytes, String contentType, Usuario executor) throws IOException {
+        if (executor.getPerfilAcesso() == Perfil.PUBLICO_GERAL) {
+            throw new RuntimeException("Acesso negado: publico nao pode salvar fotos.");
+        }
+
+        Arvore arvore = repository.findByIdAndAtivaTrue(id)
+                .orElseThrow(() -> new RuntimeException("Arvore ativa nao encontrada"));
+
+        arvore.setFoto(bytes);
+        arvore.setFotoContentType(contentType);
+        repository.save(arvore);
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] getFoto(UUID id) {
+        Arvore arvore = repository.findByIdAndAtivaTrue(id)
+                .orElseThrow(() -> new RuntimeException("Arvore ativa nao encontrada"));
+        return arvore.getFoto();
+    }
+
+    @Transactional(readOnly = true)
+    public String getFotoContentType(UUID id) {
+        Arvore arvore = repository.findByIdAndAtivaTrue(id)
+                .orElseThrow(() -> new RuntimeException("Arvore ativa nao encontrada"));
+        return arvore.getFotoContentType();
+    }
     private void atributosArvore(ArvoreRequestDTO dto, Arvore arvore) {
         arvore.setEspecie(dto.especie());
         arvore.setNomeComum(dto.nomeComum());
