@@ -46,6 +46,9 @@ public class RegistroArvore {
     @Column(name = "versao", nullable = false)
     private Integer versao;
 
+    @Column(name = "registro_origem_id")
+    private UUID registroOrigemId;
+
     @ManyToOne
     @JoinColumn(name = "arvore")
     private Arvore arvore;

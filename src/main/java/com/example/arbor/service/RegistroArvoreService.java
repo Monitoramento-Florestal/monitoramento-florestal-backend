@@ -1,31 +1,15 @@
 package com.example.arbor.service;
 
-import com.example.arbor.dto.request.RecusarRegistroRequestDTO;
-import com.example.arbor.dto.request.RegistroNovaArvoreRequestDTO;
-import com.example.arbor.dto.request.RegistroRequestDTO;
-import com.example.arbor.dto.response.RegistroNovaArvoreResponseDTO;
 import com.example.arbor.dto.response.RegistroResponseDTO;
-import com.example.arbor.model.Arvore;
-import com.example.arbor.model.Conflito;
-import com.example.arbor.model.Manejo;
 import com.example.arbor.model.RegistroArvore;
 import com.example.arbor.model.Usuario;
-import com.example.arbor.model.enums.*;
-import com.example.arbor.repository.ArvoreRepository;
+import com.example.arbor.model.enums.StatusRegistro;
 import com.example.arbor.repository.RegistroArvoreRepository;
-import com.example.arbor.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,12 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RegistroArvoreService {
 
-    private static final GeometryFactory GEOMETRY_FACTORY =
-            new GeometryFactory(new PrecisionModel(), 4326);
-
     private final RegistroArvoreRepository registroRepository;
-    private final ArvoreRepository arvoreRepository;
-    private final UsuarioRepository usuarioRepository;
 
     @Transactional(readOnly = true)
     public List<RegistroResponseDTO> filtrarPorStatus(StatusRegistro status) {
@@ -68,155 +47,14 @@ public class RegistroArvoreService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public RegistroResponseDTO aprovarRegistro(UUID registroId, Usuario admin) {
-        RegistroArvore registro = registroRepository.findById(registroId)
-                .orElseThrow(() -> new RuntimeException("Registro nao encontrado"));
-
-        if (registro.getStatus() != StatusRegistro.PENDENTE) {
-            throw new RuntimeException("Somente registros pendentes podem ser aprovados");
-        }
-
-        Usuario adminPersistido = usuarioRepository.findById(admin.getId())
-                .orElseThrow(() -> new RuntimeException("Administrador nao encontrado"));
-
-        registro.setStatus(StatusRegistro.APROVADO);
-        registro.setAdministradorResponsavel(adminPersistido);
-        registro.setDataAnalise(LocalDateTime.now());
-
-        if (registro.getArvore() == null) {
-            Arvore arvore = new Arvore();
-            arvore.setCodigo(arvoreRepository.gerarProximoCodigo());
-            arvore.setEspecie(registro.getEspecie());
-            arvore.setBairro(registro.getBairro());
-            arvore.setRua(registro.getRua());
-            arvore.setReferencia(registro.getReferencia());
-            atributosArvore(registro, arvore);
-
-            Arvore arvoreSalva = arvoreRepository.save(arvore);
-            registro.setArvore(arvoreSalva);
-        } else {
-            Arvore arvoreExistente = registro.getArvore();
-            atributosArvore(registro, arvoreExistente);
-            arvoreRepository.save(arvoreExistente);
-        }
-
-        return new RegistroResponseDTO(registroRepository.save(registro));
-    }
-
-    @Transactional
-    public RegistroResponseDTO recusarRegistro(UUID registroId, Usuario admin, RecusarRegistroRequestDTO dto) {
-        RegistroArvore registro = registroRepository.findById(registroId)
-                .orElseThrow(() -> new RuntimeException("Registro nao encontrado"));
-
-        if (registro.getStatus() != StatusRegistro.PENDENTE) {
-            throw new RuntimeException("Somente registros pendentes podem ser recusados");
-        }
-
-        Usuario adminPersistido = usuarioRepository.findById(admin.getId())
-                .orElseThrow(() -> new RuntimeException("Administrador nao encontrado"));
-
-        registro.setStatus(StatusRegistro.RECUSADO);
-        registro.setMotivoRecusa(dto.motivoRecusa());
-        registro.setAdministradorResponsavel(adminPersistido);
-        registro.setDataAnalise(LocalDateTime.now());
-
-        return new RegistroResponseDTO(registroRepository.save(registro));
-    }
-
-    @Transactional
-    public RegistroResponseDTO cadastrar(RegistroRequestDTO dto, Usuario pesquisador) {
-        Usuario pesquisadorPersistido = usuarioRepository.findById(pesquisador.getId())
-                .orElseThrow(() -> new RuntimeException("Pesquisador nao encontrado"));
-
-        Arvore arvore = arvoreRepository.findByIdAndAtivaTrue(dto.arvoreId())
-                .orElseThrow(() -> new RuntimeException("Arvore ativa nao encontrada"));
-
-        RegistroArvore registro = new RegistroArvore();
-
-        registro.setPesquisador(pesquisadorPersistido);
-        registro.setDataColeta(LocalDateTime.now());
-        registro.setArvore(arvore);
-        atributosRegistro(
-                registro,
-                dto.alturaColetada(),
-                dto.dapColetada(),
-                dto.copaColetada(),
-                dto.estadoGeral(),
-                dto.vigor(),
-                dto.problemasCopa(),
-                dto.problemasRaiz(),
-                dto.problemasTronco(),
-                dto.estruturaTronco(),
-                dto.estruturaBase(),
-                dto.estruturaCopa(),
-                dto.inclinacaoTronco(),
-                dto.ancoragem(),
-                dto.fluxoPedestre(),
-                dto.fluxoAutomovel(),
-                dto.tipoVia(),
-                dto.alvosPotenciais(),
-                dto.alvosSensiveis(),
-                dto.conflito(),
-                dto.manejo(),
-                dto.observacoes()
-        );
-
-        return new RegistroResponseDTO(registroRepository.save(registro));
-    }
-
-    @Transactional
-    public RegistroNovaArvoreResponseDTO cadastrarNovaArvore(RegistroNovaArvoreRequestDTO dto, Usuario pesquisador) {
-        Usuario pesquisadorPersistido = usuarioRepository.findById(pesquisador.getId())
-                .orElseThrow(() -> new RuntimeException("Pesquisador nao encontrado"));
-
-        RegistroArvore registro = new RegistroArvore();
-
-        registro.setEspecie(dto.especie());
-        registro.setBairro(dto.bairro());
-        registro.setRua(dto.rua());
-        registro.setReferencia(dto.referencia());
-        registro.setLocalizacaoNova(toPoint(dto.lat(), dto.lng()));
-        registro.setPesquisador(pesquisadorPersistido);
-        registro.setDataColeta(LocalDateTime.now());
-        atributosRegistro(
-                registro,
-                dto.alturaColetada(),
-                dto.dapColetada(),
-                dto.copaColetada(),
-                dto.estadoGeral(),
-                dto.vigor(),
-                dto.problemasCopa(),
-                dto.problemasRaiz(),
-                dto.problemasTronco(),
-                dto.estruturaTronco(),
-                dto.estruturaBase(),
-                dto.estruturaCopa(),
-                dto.inclinacaoTronco(),
-                dto.ancoragem(),
-                dto.fluxoPedestre(),
-                dto.fluxoAutomovel(),
-                dto.tipoVia(),
-                dto.alvosPotenciais(),
-                dto.alvosSensiveis(),
-                dto.conflito(),
-                dto.manejo(),
-                dto.observacoes()
-        );
-
-        return new RegistroNovaArvoreResponseDTO(registroRepository.save(registro));
-    }
-
+    @Transactional(readOnly = true)
     public RegistroResponseDTO buscarRegistroVigenteDTO(UUID arvoreId) {
-
         RegistroArvore registro = buscarRegistroVigente(arvoreId);
-
-        return registro == null
-                ? null
-                : new RegistroResponseDTO(registro);
+        return registro == null ? null : new RegistroResponseDTO(registro);
     }
-    public RegistroArvore buscarRegistroVigente(UUID arvoreId) {
 
+    @Transactional(readOnly = true)
+    public RegistroArvore buscarRegistroVigente(UUID arvoreId) {
         return registroRepository
                 .findTopByArvoreIdAndStatusOrderByVersaoDesc(
                         arvoreId,
@@ -241,139 +79,9 @@ public class RegistroArvoreService {
         registroRepository.delete(registro);
     }
 
-    private void atributosArvore(RegistroArvore registro, Arvore arvore) {
-        if (registro.getLocalizacaoNova() != null) {
-            arvore.setLocalizacao(registro.getLocalizacaoNova());
-        }
-        arvore.setAlturaAtual(registro.getAlturaColetada());
-        arvore.setDapAtual(registro.getDapColetada());
-        arvore.setCopaAtual(registro.getCopaColetada());
-        arvore.setEstadoGeral(registro.getEstadoGeral());
-        arvore.setVigor(registro.getVigor());
-        arvore.setProblemasCopa(copySet(registro.getProblemasCopa()));
-        arvore.setProblemasRaiz(copySet(registro.getProblemasRaiz()));
-        arvore.setProblemasTronco(copySet(registro.getProblemasTronco()));
-        arvore.setEstruturaTronco(registro.getEstruturaTronco());
-        arvore.setEstruturaBase(registro.getEstruturaBase());
-        arvore.setEstruturaCopa(registro.getEstruturaCopa());
-        arvore.setInclinacao(registro.getInclinacao());
-        arvore.setAncoragem(registro.getAncoragem());
-        arvore.setFluxoAutomovel(registro.getFluxoAutomovel());
-        arvore.setFluxoPedestre(registro.getFluxoPedestre());
-        arvore.setTipoVia(registro.getTipoVia());
-        arvore.setAlvosPotenciais(copySet(registro.getAlvosPotenciais()));
-        arvore.setAlvosSensiveis(copySet(registro.getAlvosSensiveis()));
-        arvore.setConflito(copyConflito(registro.getConflito()));
-        arvore.setManejo(copyManejo(registro.getManejo()));
-        arvore.setObservacoes(registro.getObservacoes());
-    }
-
-    private void atributosRegistro(
-            RegistroArvore registro,
-            Double alturaColetada,
-            Double dapColetada,
-            Double copaColetada,
-            EstadoGeral estadoGeral,
-            Vigor vigor,
-            Set<Problema> problemasCopa,
-            Set<Problema> problemasRaiz,
-            Set<Problema> problemasTronco,
-            EstruturaTronco estruturaTronco,
-            EstruturaBase estruturaBase,
-            EstruturaCopa estruturaCopa,
-            InclinacaoTronco inclinacaoTronco,
-            AncoragemRadicular ancoragem,
-            FluxoPedestre fluxoPedestre,
-            FluxoAutomovel fluxoAutomovel,
-            TipoVia tipoVia,
-            Set<AlvoPotencial> alvosPotenciais,
-            Set<AlvoSensivel> alvosSensiveis,
-            Conflito conflito,
-            Manejo manejo,
-            String observacoes
-    ) {
-        registro.setStatus(StatusRegistro.PENDENTE);
-        registro.setVersao(resolveVersao(registro.getArvore()));
-        registro.setAlturaColetada(alturaColetada);
-        registro.setDapColetada(dapColetada);
-        registro.setCopaColetada(copaColetada);
-        registro.setEstadoGeral(estadoGeral);
-        registro.setVigor(vigor);
-        registro.setProblemasCopa(problemasCopa);
-        registro.setProblemasRaiz(problemasRaiz);
-        registro.setProblemasTronco(problemasTronco);
-        registro.setEstruturaTronco(estruturaTronco);
-        registro.setEstruturaBase(estruturaBase);
-        registro.setEstruturaCopa(estruturaCopa);
-        registro.setInclinacao(inclinacaoTronco);
-        registro.setAncoragem(ancoragem);
-        registro.setFluxoPedestre(fluxoPedestre);
-        registro.setFluxoAutomovel(fluxoAutomovel);
-        registro.setTipoVia(tipoVia);
-        registro.setAlvosPotenciais(alvosPotenciais);
-        registro.setAlvosSensiveis(alvosSensiveis);
-        registro.setConflito(conflito);
-        registro.setManejo(manejo);
-        registro.setObservacoes(observacoes);
-        registro.setAdministradorResponsavel(null);
-        registro.setDataAnalise(null);
-        registro.setMotivoRecusa(null);
-    }
-
-    private int resolveVersao(Arvore arvore) {
-        if (arvore == null) {
-            return 1;
-        }
-
-        return registroRepository.findTopByArvoreIdOrderByVersaoDesc(arvore.getId())
-                .map(RegistroArvore::getVersao)
-                .map(versao -> versao + 1)
-                .orElse(1);
-    }
-
-    private Point toPoint(Double lat, Double lng) {
-        if (lat == null || lng == null) {
-            return null;
-        }
-
-        return GEOMETRY_FACTORY.createPoint(new Coordinate(lng, lat));
-    }
-
     private boolean isOperadorAdministrativo(Usuario usuario) {
         return usuario != null
                 && usuario.getPerfilAcesso() != null
                 && usuario.getPerfilAcesso().isAdministrativo();
-    }
-
-    private <T> Set<T> copySet(Set<T> source) {
-        if (source == null) {
-            return null;
-        }
-
-        return new LinkedHashSet<>(source);
-    }
-
-    private Conflito copyConflito(Conflito source) {
-        if (source == null) {
-            return null;
-        }
-
-        return new Conflito(
-                source.getFiacao(),
-                source.getCalcada(),
-                source.getIluminacao(),
-                source.getEdificacao()
-        );
-    }
-
-    private Manejo copyManejo(Manejo source) {
-        if (source == null) {
-            return null;
-        }
-
-        Manejo manejo = new Manejo();
-        manejo.setAcoes(copySet(source.getAcoes()));
-        manejo.setPrioridade(source.getPrioridade());
-        return manejo;
     }
 }
