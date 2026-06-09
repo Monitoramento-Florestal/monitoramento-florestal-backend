@@ -13,6 +13,8 @@ public record RegistroNovaArvoreResponseDTO(
         String bairro,
         String rua,
         String referencia,
+        Double lat,
+        Double lng,
         UsuarioResponseDTO pesquisador,
         LocalDateTime dataColeta,
         UsuarioResponseDTO administradorResponsavel,
@@ -47,6 +49,8 @@ public record RegistroNovaArvoreResponseDTO(
                 registro.getBairro(),
                 registro.getRua(),
                 registro.getReferencia(),
+                registro.toLatNova(),
+                registro.toLngNova(),
 
                 new UsuarioResponseDTO(registro.getPesquisador()),
                 registro.getDataColeta(),

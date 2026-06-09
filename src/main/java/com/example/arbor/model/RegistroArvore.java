@@ -3,6 +3,7 @@ package com.example.arbor.model;
 import com.example.arbor.model.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -31,6 +32,9 @@ public class RegistroArvore {
 
     @Column(name = "referencia")
     private String referencia;
+
+    @Column(name = "localizacao_nova", columnDefinition = "GEOMETRY(Point, 4326)")
+    private Point localizacaoNova;
 
     @ManyToOne
     @JoinColumn(name = "pesquisador", nullable = false)
@@ -147,4 +151,12 @@ public class RegistroArvore {
 
     @Column(name = "observacoes")
     private String observacoes;
+
+    public Double toLatNova() {
+        return localizacaoNova != null ? localizacaoNova.getY() : null;
+    }
+
+    public Double toLngNova() {
+        return localizacaoNova != null ? localizacaoNova.getX() : null;
+    }
 }
