@@ -15,6 +15,10 @@ import com.example.arbor.repository.ArvoreRepository;
 import com.example.arbor.repository.RegistroArvoreRepository;
 import com.example.arbor.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RegistroArvoreService {
+
+    private static final GeometryFactory GEOMETRY_FACTORY =
+            new GeometryFactory(new PrecisionModel(), 4326);
 
     private final RegistroArvoreRepository registroRepository;
     private final ArvoreRepository arvoreRepository;
@@ -79,6 +86,7 @@ public class RegistroArvoreService {
 
         if (registro.getArvore() == null) {
             Arvore arvore = new Arvore();
+            arvore.setCodigo(arvoreRepository.gerarProximoCodigo());
             arvore.setEspecie(registro.getEspecie());
             arvore.setBairro(registro.getBairro());
             arvore.setRua(registro.getRua());
@@ -168,6 +176,7 @@ public class RegistroArvoreService {
         registro.setBairro(dto.bairro());
         registro.setRua(dto.rua());
         registro.setReferencia(dto.referencia());
+        registro.setLocalizacaoNova(toPoint(dto.lat(), dto.lng()));
         registro.setPesquisador(pesquisadorPersistido);
         registro.setDataColeta(LocalDateTime.now());
         atributosRegistro(
@@ -233,6 +242,9 @@ public class RegistroArvoreService {
     }
 
     private void atributosArvore(RegistroArvore registro, Arvore arvore) {
+        if (registro.getLocalizacaoNova() != null) {
+            arvore.setLocalizacao(registro.getLocalizacaoNova());
+        }
         arvore.setAlturaAtual(registro.getAlturaColetada());
         arvore.setDapAtual(registro.getDapColetada());
         arvore.setCopaAtual(registro.getCopaColetada());
@@ -281,6 +293,7 @@ public class RegistroArvoreService {
             String observacoes
     ) {
         registro.setStatus(StatusRegistro.PENDENTE);
+        registro.setVersao(resolveVersao(registro.getArvore()));
         registro.setAlturaColetada(alturaColetada);
         registro.setDapColetada(dapColetada);
         registro.setCopaColetada(copaColetada);
@@ -305,6 +318,25 @@ public class RegistroArvoreService {
         registro.setAdministradorResponsavel(null);
         registro.setDataAnalise(null);
         registro.setMotivoRecusa(null);
+    }
+
+    private int resolveVersao(Arvore arvore) {
+        if (arvore == null) {
+            return 1;
+        }
+
+        return registroRepository.findTopByArvoreIdOrderByVersaoDesc(arvore.getId())
+                .map(RegistroArvore::getVersao)
+                .map(versao -> versao + 1)
+                .orElse(1);
+    }
+
+    private Point toPoint(Double lat, Double lng) {
+        if (lat == null || lng == null) {
+            return null;
+        }
+
+        return GEOMETRY_FACTORY.createPoint(new Coordinate(lng, lat));
     }
 
     private boolean isOperadorAdministrativo(Usuario usuario) {

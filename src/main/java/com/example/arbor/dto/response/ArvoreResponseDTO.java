@@ -11,6 +11,10 @@ import java.util.UUID;
 
 public record ArvoreResponseDTO(
         UUID id,
+        String codigo,
+        String nomeComum,
+        Double lat,
+        Double lng,
         String especie,
         String bairro,
         String rua,
@@ -35,13 +39,17 @@ public record ArvoreResponseDTO(
         Set<AlvoSensivel> alvosSensiveis,
         Conflito conflito,
         Manejo manejo,
-        String observacoes
+        String observacoes,
+        Object currentRecord
 ) {
 
     public ArvoreResponseDTO(Arvore arvore) {
-
         this(
                 arvore.getId(),
+                arvore.getCodigo(),
+                arvore.getNomeComum(),
+                arvore.toLat(),
+                arvore.toLng(),
                 arvore.getEspecie(),
                 arvore.getBairro(),
                 arvore.getRua(),
@@ -66,23 +74,18 @@ public record ArvoreResponseDTO(
                 copySet(arvore.getAlvosSensiveis()),
                 copyConflito(arvore.getConflito()),
                 copyManejo(arvore.getManejo()),
-                arvore.getObservacoes()
+                arvore.getObservacoes(),
+                null  // currentRecord — aguarda RegistroResumoDTO da Pessoa 3
         );
     }
 
     private static <T> Set<T> copySet(Set<T> source) {
-        if (source == null) {
-            return null;
-        }
-
+        if (source == null) return null;
         return new LinkedHashSet<>(source);
     }
 
     private static Conflito copyConflito(Conflito source) {
-        if (source == null) {
-            return null;
-        }
-
+        if (source == null) return null;
         return new Conflito(
                 source.getFiacao(),
                 source.getCalcada(),
@@ -92,10 +95,7 @@ public record ArvoreResponseDTO(
     }
 
     private static Manejo copyManejo(Manejo source) {
-        if (source == null) {
-            return null;
-        }
-
+        if (source == null) return null;
         return new Manejo(
                 copySet(source.getAcoes()),
                 source.getPrioridade()

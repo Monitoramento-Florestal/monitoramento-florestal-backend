@@ -9,6 +9,10 @@ import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.enums.Problema;
 import com.example.arbor.model.enums.Vigor;
 import com.example.arbor.repository.ArvoreRepository;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +22,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class ArvoreService {
+
+    private static final GeometryFactory GEOMETRY_FACTORY =
+            new GeometryFactory(new PrecisionModel(), 4326);
 
     private final ArvoreRepository repository;
 
@@ -88,10 +95,7 @@ public class ArvoreService {
         }
 
         Arvore arvore = new Arvore();
-        arvore.setEspecie(dto.especie());
-        arvore.setBairro(dto.bairro());
-        arvore.setRua(dto.rua());
-        arvore.setReferencia(dto.referencia());
+        arvore.setCodigo(repository.gerarProximoCodigo());
         atributosArvore(dto, arvore);
 
         return new ArvoreResponseDTO(repository.save(arvore));
@@ -124,6 +128,12 @@ public class ArvoreService {
     }
 
     private void atributosArvore(ArvoreRequestDTO dto, Arvore arvore) {
+        arvore.setEspecie(dto.especie());
+        arvore.setNomeComum(dto.nomeComum());
+        arvore.setBairro(dto.bairro());
+        arvore.setRua(dto.rua());
+        arvore.setReferencia(dto.referencia());
+        arvore.setLocalizacao(toPoint(dto.lat(), dto.lng()));
         arvore.setAlturaAtual(dto.alturaAtual());
         arvore.setDapAtual(dto.dapAtual());
         arvore.setCopaAtual(dto.copaAtual());
@@ -145,6 +155,14 @@ public class ArvoreService {
         arvore.setConflito(dto.conflito());
         arvore.setManejo(dto.manejo());
         arvore.setObservacoes(dto.observacoes());
+    }
+
+    private Point toPoint(Double lat, Double lng) {
+        if (lat == null || lng == null) {
+            return null;
+        }
+
+        return GEOMETRY_FACTORY.createPoint(new Coordinate(lng, lat));
     }
 
     private boolean isOperadorAdministrativo(Usuario usuario) {

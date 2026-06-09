@@ -3,6 +3,8 @@ package com.example.arbor.dto.request;
 import com.example.arbor.model.Conflito;
 import com.example.arbor.model.Manejo;
 import com.example.arbor.model.enums.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -11,6 +13,18 @@ import java.util.Set;
 public record ArvoreRequestDTO(
 
         @NotBlank String especie,
+        String nomeComum,
+
+        @NotNull
+        @DecimalMin(value = "-90.0",  message = "Latitude deve ser >= -90.")
+        @DecimalMax(value = "90.0",   message = "Latitude deve ser <= 90.")
+        Double lat,
+
+        @NotNull
+        @DecimalMin(value = "-180.0", message = "Longitude deve ser >= -180.")
+        @DecimalMax(value = "180.0",  message = "Longitude deve ser <= 180.")
+        Double lng,
+
         @NotBlank String bairro,
         @NotBlank String rua,
         String referencia,
@@ -36,4 +50,4 @@ public record ArvoreRequestDTO(
         @NotNull Manejo manejo,
         String observacoes
 
-        ) {}
+) {}

@@ -63,6 +63,7 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/refresh",
                                 "/api/auth/registrar").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/map/**").permitAll()
                         .requestMatchers(
                                 "/api/recuperar-senha/**",
                                 "/swagger-ui.html",
