@@ -1,8 +1,11 @@
 package com.example.arbor.controller;
 
+import com.example.arbor.dto.request.AlterarSenhaRequestDTO;
+import com.example.arbor.dto.request.AtualizarPerfilRequestDTO;
 import com.example.arbor.dto.request.AtualizarUsuarioAdminRequestDTO;
 import com.example.arbor.dto.request.UsuarioRequestDTO;
 import com.example.arbor.dto.response.PageResponseDTO;
+import com.example.arbor.dto.response.UsuarioPerfilResponseDTO;
 import com.example.arbor.dto.response.UsuarioResponseDTO;
 import com.example.arbor.model.enums.Perfil;
 import com.example.arbor.model.Usuario;
@@ -37,6 +40,29 @@ public class UsuarioController {
             @RequestParam(defaultValue = "20") int limit,
             @AuthenticationPrincipal Usuario executor) {
         return ResponseEntity.ok(service.listarTodos(perfilAcesso, ativo, search, page, limit, executor));
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UsuarioPerfilResponseDTO> buscarMeuPerfil(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(service.buscarMeuPerfil(usuario));
+    }
+
+    @PatchMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UsuarioPerfilResponseDTO> atualizarMeuPerfil(
+            @AuthenticationPrincipal Usuario usuario,
+            @Valid @RequestBody AtualizarPerfilRequestDTO dto) {
+        return ResponseEntity.ok(service.atualizarMeuPerfil(usuario, dto));
+    }
+
+    @PostMapping("/me/change-password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> alterarMinhaSenha(
+            @AuthenticationPrincipal Usuario usuario,
+            @Valid @RequestBody AlterarSenhaRequestDTO dto) {
+        service.alterarMinhaSenha(usuario, dto);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
