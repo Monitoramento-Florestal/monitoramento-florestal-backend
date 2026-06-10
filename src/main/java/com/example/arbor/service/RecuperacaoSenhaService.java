@@ -8,9 +8,6 @@ import com.example.arbor.model.TokenRecuperacao;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.repository.TokenRecuperacaoRepository;
 import com.example.arbor.repository.UsuarioRepository;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,20 +24,17 @@ public class RecuperacaoSenhaService {
 
     private final UsuarioRepository usuarioRepository;
     private final TokenRecuperacaoRepository tokenRepository;
-    private final JavaMailSender mailSender;
+    private final EmailSender emailSender;
     private final PasswordEncoder passwordEncoder;
-
-    @Value("${spring.mail.username}")
-    private String mailUsername;
 
     public RecuperacaoSenhaService(
             UsuarioRepository usuarioRepository,
             TokenRecuperacaoRepository tokenRepository,
-            JavaMailSender mailSender,
+            EmailSender emailSender,
             PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.tokenRepository = tokenRepository;
-        this.mailSender = mailSender;
+        this.emailSender = emailSender;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -57,11 +51,7 @@ public class RecuperacaoSenhaService {
             token.setUtilizado(false);
 
             tokenRepository.save(token);
-            try {
-                enviarEmail(usuario.getEmail(), usuario.getNome(), token.getCodigo());
-            } catch (RuntimeException ex) {
-                LOGGER.warn("Falha ao enviar e-mail de recuperacao de senha para usuario {}", usuario.getId(), ex);
-            }
+            enviarEmail(usuario.getEmail(), usuario.getNome(), token.getCodigo());
         });
     }
 
@@ -109,18 +99,18 @@ public class RecuperacaoSenhaService {
     }
 
     private void enviarEmail(String destinatario, String nomeUsuario, String codigo) {
-        SimpleMailMessage mensagem = new SimpleMailMessage();
-        mensagem.setFrom(mailUsername);
-        mensagem.setTo(destinatario);
-        mensagem.setSubject("Arbor - Codigo de recuperacao de senha");
-        mensagem.setText(
-                "Ola, " + nomeUsuario + "!\n\n" +
-                        "Seu codigo de recuperacao de senha e:\n\n" +
-                        "  " + codigo + "\n\n" +
-                        "Este codigo e valido por 15 minutos.\n" +
-                        "Se voce nao solicitou a recuperacao, ignore este e-mail.\n\n" +
-                        "Equipe Arbor"
-        );
-        mailSender.send(mensagem);
+        String assunto = "Arbor - Codigo de recuperacao de senha";
+        String corpo = "Ola, " + nomeUsuario + "!\n\n" +
+                "Seu codigo de recuperacao de senha e:\n\n" +
+                "  " + codigo + "\n\n" +
+                "Este codigo e valido por 15 minutos.\n" +
+                "Se voce nao solicitou a recuperacao, ignore este e-mail.\n\n" +
+                "Equipe Arbor";
+
+        try {
+            emailSender.enviar(destinatario, assunto, corpo);
+        } catch (RuntimeException ex) {
+            LOGGER.warn("Falha ao enviar e-mail de recuperacao de senha para usuario destinatario", ex);
+        }
     }
 }
