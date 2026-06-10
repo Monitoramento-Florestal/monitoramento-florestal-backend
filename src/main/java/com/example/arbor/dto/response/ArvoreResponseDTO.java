@@ -5,6 +5,7 @@ import com.example.arbor.model.Conflito;
 import com.example.arbor.model.Manejo;
 import com.example.arbor.model.enums.*;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -12,6 +13,7 @@ import java.util.UUID;
 public record ArvoreResponseDTO(
         UUID id,
         String codigo,
+        LocalDateTime dataCadastro,
         String nomeComum,
         Double lat,
         Double lng,
@@ -48,6 +50,7 @@ public record ArvoreResponseDTO(
         this(
                 arvore.getId(),
                 arvore.getCodigo(),
+                arvore.getDataCadastro(),
                 arvore.getNomeComum(),
                 arvore.toLat(),
                 arvore.toLng(),

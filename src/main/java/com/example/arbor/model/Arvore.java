@@ -30,6 +30,9 @@ public class Arvore {
     @Column(name = "codigo", nullable = false, unique = true, updatable = false)
     private String codigo;
 
+    @Column(name = "data_cadastro", nullable = false, updatable = false)
+    private LocalDateTime dataCadastro;
+
     @Column(name = "especie", nullable = false)
     private String especie;
 
@@ -168,5 +171,12 @@ public class Arvore {
     }
     public boolean isGeolocalizada() {
         return localizacao != null;
+    }
+
+    @PrePersist
+    void preencherDataCadastro() {
+        if (dataCadastro == null) {
+            dataCadastro = LocalDateTime.now();
+        }
     }
 }
