@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/approval-requests")
+@RequestMapping("/api/solicitacao")
 @RequiredArgsConstructor
 public class SolicitacaoAprovacaoController {
 

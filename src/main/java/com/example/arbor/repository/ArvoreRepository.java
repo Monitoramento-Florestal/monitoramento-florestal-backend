@@ -263,7 +263,19 @@ public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
             @Param("especie")     String   especie,
             @Param("estadoGeral") String   estadoGeral,
             Pageable              pageable);
+
+    @Query("""
+        SELECT COUNT(DISTINCT a)
+        FROM Arvore a
+        LEFT JOIN a.problemasCopa pc
+        LEFT JOIN a.problemasTronco pt
+        LEFT JOIN a.problemasRaiz pr
+        WHERE pc <> com.example.arbor.model.enums.Problema.NENHUM
+           OR pt <> com.example.arbor.model.enums.Problema.NENHUM
+           OR pr <> com.example.arbor.model.enums.Problema.NENHUM
+    """)
+    Long countArvoresInjuriadas();
+
+    long countByAtivaFalse();
+
 }
-
-
-

@@ -66,6 +66,8 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
             "alvosSensiveis",
             "manejo.acoes"
     })
+    Long countByPesquisadorId(UUID id);
+
     List<RegistroArvore> findByStatusAndPesquisadorId(StatusRegistro status, UUID id);
 
     @EntityGraph(attributePaths = {

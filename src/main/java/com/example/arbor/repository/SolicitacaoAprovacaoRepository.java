@@ -13,9 +13,13 @@ public interface SolicitacaoAprovacaoRepository extends JpaRepository<Solicitaca
 
     List<SolicitacaoAprovacao> findByStatus(StatusRegistro status);
 
+    Long countByStatus(StatusRegistro status);
+
     List<SolicitacaoAprovacao> findByPesquisadorId(UUID id);
 
     List<SolicitacaoAprovacao> findByPesquisadorIdAndStatus(UUID id, StatusRegistro status);
+
+    Long countByPesquisadorIdAndStatus(UUID id, StatusRegistro status);
 
     List<SolicitacaoAprovacao> findByTipo(TipoSolicitacao tipo);
 
