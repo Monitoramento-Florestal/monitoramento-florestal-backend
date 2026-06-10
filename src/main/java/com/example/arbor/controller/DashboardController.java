@@ -21,7 +21,7 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/publico")
-    @PreAuthorize("hasRole('PUBLICO_GERAL')")
+    
     public DashboardPublicoResponseDTO dashboardPublico() {
         return dashboardService.dashboardPublico();
     }

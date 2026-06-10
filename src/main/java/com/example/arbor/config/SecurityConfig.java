@@ -65,6 +65,7 @@ public class SecurityConfig {
                                 "/api/auth/registrar").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/map/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/arvores/*/foto").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/publico").permitAll()
                         .requestMatchers(
                                 "/api/recuperar-senha/**",
                                 "/swagger-ui.html",
