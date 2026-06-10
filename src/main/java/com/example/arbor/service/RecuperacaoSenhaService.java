@@ -9,6 +9,7 @@ import com.example.arbor.model.Usuario;
 import com.example.arbor.repository.TokenRecuperacaoRepository;
 import com.example.arbor.repository.UsuarioRepository;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class RecuperacaoSenhaService {
     private final TokenRecuperacaoRepository tokenRepository;
     private final JavaMailSender mailSender;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${spring.mail.username}")
+    private String mailUsername;
 
     public RecuperacaoSenhaService(
             UsuarioRepository usuarioRepository,
@@ -106,6 +110,7 @@ public class RecuperacaoSenhaService {
 
     private void enviarEmail(String destinatario, String nomeUsuario, String codigo) {
         SimpleMailMessage mensagem = new SimpleMailMessage();
+        mensagem.setFrom(mailUsername);
         mensagem.setTo(destinatario);
         mensagem.setSubject("Arbor - Codigo de recuperacao de senha");
         mensagem.setText(
