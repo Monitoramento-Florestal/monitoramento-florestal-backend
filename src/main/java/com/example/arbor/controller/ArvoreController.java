@@ -20,7 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import java.io.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -54,11 +54,11 @@ public class ArvoreController {
 
     @GetMapping("/exportacao")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR')")
-    public ResponseEntity<StreamingResponseBody> exportar(
+    public ResponseEntity<byte[]> exportar(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal,
             @RequestParam String formato,
-            @AuthenticationPrincipal Usuario usuarioLogado) {
+            @AuthenticationPrincipal Usuario usuarioLogado) throws IOException {
         ExportacaoPreparada exportacao =
                 exportacaoArvoresService.preparar(dataInicial, dataFinal, formato);
         LOGGER.info(
@@ -68,8 +68,10 @@ public class ArvoreController {
                 dataFinal,
                 exportacao.formato(),
                 exportacao.totalRegistros());
-        StreamingResponseBody body =
-                outputStream -> exportacaoArvoresService.exportar(exportacao, outputStream);
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        exportacaoArvoresService.exportar(exportacao, buffer);
+        byte[] conteudo = buffer.toByteArray();
 
         ContentDisposition disposition = ContentDisposition.attachment()
                 .filename(exportacao.nomeArquivo(), StandardCharsets.UTF_8)
@@ -80,7 +82,7 @@ public class ArvoreController {
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .header("X-Content-Type-Options", "nosniff")
                 .contentType(MediaType.parseMediaType(exportacao.formato().mediaType()))
-                .body(body);
+                .body(conteudo);
     }
 
     @GetMapping("/{id}")
