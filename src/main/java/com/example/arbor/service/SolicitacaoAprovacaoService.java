@@ -318,8 +318,16 @@ public class SolicitacaoAprovacaoService {
         arvore.setTipoVia(proposta.tipoVia());
         arvore.setAlvosPotenciais(proposta.alvosPotenciais());
         arvore.setAlvosSensiveis(proposta.alvosSensiveis());
-        arvore.setConflito(proposta.conflito());
-        arvore.setManejo(proposta.manejo());
+        arvore.setConflito(new Conflito(
+                proposta.conflito().getFiacao(),
+                proposta.conflito().getCalcada(),
+                proposta.conflito().getIluminacao(),
+                proposta.conflito().getEdificacao()
+        ));
+        arvore.setManejo(new Manejo(
+                new java.util.LinkedHashSet<>(proposta.manejo().getAcoes()),
+                proposta.manejo().getPrioridade()
+        ));
         arvore.setObservacoes(proposta.observacoes());
     }
 
@@ -362,8 +370,16 @@ public class SolicitacaoAprovacaoService {
         registro.setTipoVia(proposta.tipoVia());
         registro.setAlvosPotenciais(proposta.alvosPotenciais());
         registro.setAlvosSensiveis(proposta.alvosSensiveis());
-        registro.setConflito(proposta.conflito());
-        registro.setManejo(proposta.manejo());
+        registro.setConflito(new Conflito(
+                proposta.conflito().getFiacao(),
+                proposta.conflito().getCalcada(),
+                proposta.conflito().getIluminacao(),
+                proposta.conflito().getEdificacao()
+        ));
+        registro.setManejo(new Manejo(
+                new java.util.LinkedHashSet<>(proposta.manejo().getAcoes()),
+                proposta.manejo().getPrioridade()
+        ));
         registro.setObservacoes(proposta.observacoes());
         return registro;
     }
