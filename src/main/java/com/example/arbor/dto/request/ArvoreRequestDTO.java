@@ -46,8 +46,8 @@ public record ArvoreRequestDTO(
         @NotNull TipoVia tipoVia,
         @NotNull Set<AlvoPotencial> alvosPotenciais,
         @NotNull Set<AlvoSensivel> alvosSensiveis,
-        @NotNull Conflito conflito,
-        @NotNull Manejo manejo,
+        Conflito conflito,
+        Manejo manejo,
         String observacoes
 
 ) {}
