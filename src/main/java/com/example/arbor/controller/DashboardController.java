@@ -2,6 +2,7 @@ package com.example.arbor.controller;
 
 import com.example.arbor.dto.response.DashboardAdministrativoResponseDTO;
 import com.example.arbor.dto.response.DashboardPesquisadorResponseDTO;
+import com.example.arbor.dto.response.RegistroRecenteResponseDTO;
 import com.example.arbor.dto.response.DashboardPublicoResponseDTO;
 import com.example.arbor.model.Usuario;
 import com.example.arbor.service.DashboardService;
@@ -12,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -55,4 +57,11 @@ public class DashboardController {
                 dashboardService.dashboardAdministrativo(usuario.getId())
         );
     }
+
+    @GetMapping("/recentes")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR')")
+    public List<RegistroRecenteResponseDTO> listarRegistrosRecentes() {
+        return dashboardService.listarRegistrosRecentes();
+    }
+
 }

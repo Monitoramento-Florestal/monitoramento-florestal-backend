@@ -3,6 +3,7 @@ package com.example.arbor.service;
 import com.example.arbor.dto.response.DashboardAdministrativoResponseDTO;
 import com.example.arbor.dto.response.DashboardPesquisadorResponseDTO;
 import com.example.arbor.dto.response.DashboardPublicoResponseDTO;
+import com.example.arbor.dto.response.RegistroRecenteResponseDTO;
 import com.example.arbor.model.enums.StatusRegistro;
 import com.example.arbor.repository.ArvoreRepository;
 import com.example.arbor.repository.RegistroArvoreRepository;
@@ -10,6 +11,7 @@ import com.example.arbor.repository.SolicitacaoAprovacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -65,6 +67,13 @@ public class DashboardService {
                 arvoresCortadas,
                 aprovacoesPendentes
         );
+    }
+
+    public List<RegistroRecenteResponseDTO> listarRegistrosRecentes() {
+        return registroRepository.findTop5ByOrderByDataColetaDesc()
+                .stream()
+                .map(RegistroRecenteResponseDTO::new)
+                .toList();
     }
 
 }

@@ -95,4 +95,10 @@ public interface RegistroArvoreRepository extends JpaRepository<RegistroArvore, 
             UUID arvoreId,
             StatusRegistro status
     );
+
+    @EntityGraph(attributePaths = {
+            "pesquisador",
+            "arvore"
+    })
+    List<RegistroArvore> findTop5ByOrderByDataColetaDesc();
 }
