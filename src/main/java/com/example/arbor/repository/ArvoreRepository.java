@@ -4,6 +4,7 @@ import com.example.arbor.model.Arvore;
 import com.example.arbor.model.enums.EstadoGeral;
 import com.example.arbor.model.enums.Problema;
 import com.example.arbor.model.enums.Vigor;
+import com.example.arbor.repository.projection.ArvoreExportacaoProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 
 @Repository
@@ -277,5 +279,46 @@ public interface ArvoreRepository extends JpaRepository<Arvore, UUID> {
     Long countArvoresInjuriadas();
 
     long countByAtivaFalse();
+
+    @Query(value = """
+            SELECT
+                a.id AS id,
+                a.codigo AS codigo,
+                a.especie AS especie,
+                a.nome_comum AS nomeComum,
+                a.bairro AS bairro,
+                a.rua AS rua,
+                a.referencia AS referencia,
+                ST_Y(a.localizacao) AS latitude,
+                ST_X(a.localizacao) AS longitude,
+                a.data_cadastro AS dataCadastro,
+                a.ativa AS ativa,
+                a.altura_atual AS alturaAtual,
+                a.dap_atual AS dapAtual,
+                a.copa_atual AS copaAtual,
+                a.estado_geral AS estadoGeral,
+                a.vigor AS vigor,
+                a.observacoes AS observacoes
+            FROM tb_arvore a
+            WHERE a.data_cadastro >= :inicio
+              AND a.data_cadastro < :fimExclusivo
+            ORDER BY a.data_cadastro, a.id
+            LIMIT :limite OFFSET :deslocamento
+            """, nativeQuery = true)
+    List<ArvoreExportacaoProjection> findParaExportacao(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fimExclusivo") LocalDateTime fimExclusivo,
+            @Param("limite") int limite,
+            @Param("deslocamento") long deslocamento);
+
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM tb_arvore a
+            WHERE a.data_cadastro >= :inicio
+              AND a.data_cadastro < :fimExclusivo
+            """, nativeQuery = true)
+    long countParaExportacao(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fimExclusivo") LocalDateTime fimExclusivo);
 
 }

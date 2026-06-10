@@ -7,6 +7,8 @@ import com.example.arbor.model.enums.EstadoGeral;
 import com.example.arbor.model.enums.Problema;
 import com.example.arbor.model.enums.Vigor;
 import com.example.arbor.service.ArvoreService;
+import com.example.arbor.service.ExportacaoArvoresService;
+import com.example.arbor.service.ExportacaoArvoresService.ExportacaoPreparada;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,26 +17,70 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/arvores")
-@CrossOrigin(origins = "*")
 public class ArvoreController {
 
-    private final ArvoreService arvoreService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArvoreController.class);
 
-    public ArvoreController(ArvoreService arvoreService) {
+    private final ArvoreService arvoreService;
+    private final ExportacaoArvoresService exportacaoArvoresService;
+
+    public ArvoreController(
+            ArvoreService arvoreService,
+            ExportacaoArvoresService exportacaoArvoresService) {
         this.arvoreService = arvoreService;
+        this.exportacaoArvoresService = exportacaoArvoresService;
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR','PUBLICO_GERAL')")
     public ResponseEntity<List<ArvoreResponseDTO>> listarTodas() {
         return ResponseEntity.ok(arvoreService.listarTodas());
+    }
+
+    @GetMapping("/exportacao")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','GESTOR','PESQUISADOR')")
+    public ResponseEntity<StreamingResponseBody> exportar(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal,
+            @RequestParam String formato,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+        ExportacaoPreparada exportacao =
+                exportacaoArvoresService.preparar(dataInicial, dataFinal, formato);
+        LOGGER.info(
+                "Exportacao de arvores solicitada: usuarioId={}, inicio={}, fim={}, formato={}, total={}",
+                usuarioLogado != null ? usuarioLogado.getId() : null,
+                dataInicial,
+                dataFinal,
+                exportacao.formato(),
+                exportacao.totalRegistros());
+        StreamingResponseBody body =
+                outputStream -> exportacaoArvoresService.exportar(exportacao, outputStream);
+
+        ContentDisposition disposition = ContentDisposition.attachment()
+                .filename(exportacao.nomeArquivo(), StandardCharsets.UTF_8)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .header("X-Content-Type-Options", "nosniff")
+                .contentType(MediaType.parseMediaType(exportacao.formato().mediaType()))
+                .body(body);
     }
 
     @GetMapping("/{id}")
