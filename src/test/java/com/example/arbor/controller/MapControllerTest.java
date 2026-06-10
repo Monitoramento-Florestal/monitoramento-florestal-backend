@@ -145,7 +145,7 @@ class MapControllerTest {
     @Test
     void getMapTreeDetailDeveRetornar200ComDTODoService() {
         UUID id = UUID.randomUUID();
-        MapTreeDetailDTO detalhe = mapTreeDetailDTO(id);
+        MapTreeDetailDTO detalhe = mapTreeDetailDTO(id, null);
         when(mapService.getMapTreeDetail(id)).thenReturn(detalhe);
 
         ResponseEntity<MapTreeDetailDTO> resultado = controller.getMapTreeDetail(id);
@@ -169,7 +169,7 @@ class MapControllerTest {
     @Test
     void getMapTreeDetailRespostaDeveConterLatLngComoDoubleENaoJts() {
         UUID id = UUID.randomUUID();
-        MapTreeDetailDTO detalhe = mapTreeDetailDTO(id);
+        MapTreeDetailDTO detalhe = mapTreeDetailDTO(id, null);
         when(mapService.getMapTreeDetail(id)).thenReturn(detalhe);
 
         ResponseEntity<MapTreeDetailDTO> resultado = controller.getMapTreeDetail(id);
@@ -179,9 +179,23 @@ class MapControllerTest {
     }
 
     @Test
-    void getMapTreeDetailCurrentRecordEhNullAteIntegracaoPessoa3() {
+    void getMapTreeDetailDeveIncluirAlturaAtualDapAtualCopaAtual() {
         UUID id = UUID.randomUUID();
-        when(mapService.getMapTreeDetail(id)).thenReturn(mapTreeDetailDTO(id));
+        MapTreeDetailDTO detalhe = mapTreeDetailDTO(id, null);
+        when(mapService.getMapTreeDetail(id)).thenReturn(detalhe);
+
+        ResponseEntity<MapTreeDetailDTO> resultado = controller.getMapTreeDetail(id);
+
+        assertThat(resultado.getBody().alturaAtual()).isEqualTo(15.5);
+        assertThat(resultado.getBody().dapAtual()).isEqualTo(0.45);
+        assertThat(resultado.getBody().copaAtual()).isEqualTo(8.0);
+    }
+
+    @Test
+    void getMapTreeDetailDeveConterCurrentRecordQuandoHouverRegistroAprovado() {
+        UUID id = UUID.randomUUID();
+        MapTreeDetailDTO detalhe = mapTreeDetailDTO(id, null);
+        when(mapService.getMapTreeDetail(id)).thenReturn(detalhe);
 
         ResponseEntity<MapTreeDetailDTO> resultado = controller.getMapTreeDetail(id);
 
@@ -191,7 +205,7 @@ class MapControllerTest {
     @Test
     void getMapTreeDetailDeveDelegarIdAoService() {
         UUID id = UUID.randomUUID();
-        when(mapService.getMapTreeDetail(id)).thenReturn(mapTreeDetailDTO(id));
+        when(mapService.getMapTreeDetail(id)).thenReturn(mapTreeDetailDTO(id, null));
 
         controller.getMapTreeDetail(id);
 
@@ -211,7 +225,7 @@ class MapControllerTest {
         );
     }
 
-    private MapTreeDetailDTO mapTreeDetailDTO(UUID id) {
+    private MapTreeDetailDTO mapTreeDetailDTO(UUID id, Void ignored) {
         return new MapTreeDetailDTO(
                 id,
                 "ARV-00001",
@@ -224,7 +238,10 @@ class MapControllerTest {
                 null,
                 EstadoGeral.BOM,
                 Vigor.ALTO,
-                null,
+                15.5,
+                0.45,
+                8.0,
+                "Árvore saudável",
                 null,
                 null
         );

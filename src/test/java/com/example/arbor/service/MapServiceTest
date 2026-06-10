@@ -27,6 +27,9 @@ class MapServiceTest {
     @Mock
     private ArvoreRepository arvoreRepository;
 
+    @Mock
+    private RegistroArvoreService registroArvoreService;
+
     @InjectMocks
     private MapService service;
 
@@ -55,10 +58,8 @@ class MapServiceTest {
 
     @Test
     void getMapTreesDeveRetornarModeClusterQuandoTotalUltrapassaLimite() {
-        // Retorna acima do threshold de 200
         when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
                 isNull(), isNull(), eq(false))).thenReturn(250L);
-        // Retorno de clusters: [lat, lng, count]
         when(arvoreRepository.findClustersWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
                 eq(false), anyDouble()))
                 .thenReturn(List.of(
@@ -78,7 +79,6 @@ class MapServiceTest {
 
     @Test
     void getMapTreesDeveRetornarModeClusterQuandoZoomBaixo() {
-        // Total abaixo do threshold, mas zoom baixo força cluster
         when(arvoreRepository.countWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
                 isNull(), isNull(), eq(false))).thenReturn(10L);
         when(arvoreRepository.findClustersWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
@@ -89,7 +89,7 @@ class MapServiceTest {
 
         MapTreesResponseDTO resposta = service.getMapTrees(
                 -35.0, -8.1, -34.9, -8.0,
-                10, null, null, null, false, null);  // zoom 10 < 14
+                10, null, null, null, false, null);
 
         assertThat(resposta.mode()).isEqualTo("cluster");
     }
@@ -116,7 +116,6 @@ class MapServiceTest {
                 isNull(), isNull(), isNull(), eq(false), eq(MapService.MAP_TREES_MAX_LIMIT)))
                 .thenReturn(List.of());
 
-        // Pede 9999 — deve ser clampeado para MAP_TREES_MAX_LIMIT (500)
         service.getMapTrees(-35.0, -8.1, -34.9, -8.0, 15, null, null, null, false, 9999);
 
         verify(arvoreRepository).findWithinBbox(anyDouble(), anyDouble(), anyDouble(), anyDouble(),
@@ -167,7 +166,6 @@ class MapServiceTest {
         MapTreesResponseDTO resposta = service.getMapTrees(
                 -35.0, -8.1, -34.9, -8.0, 15, null, null, null, false, null);
 
-        // O MapTreeDTO deve ter lat/lng como Double — sem JTS Point
         assertThat(resposta.items()).hasSize(1);
         assertThat(resposta.items().get(0).lat()).isInstanceOf(Double.class);
         assertThat(resposta.items().get(0).lng()).isInstanceOf(Double.class);
@@ -226,6 +224,8 @@ class MapServiceTest {
         Arvore arvore = arvoreComLocalizacao();
         when(arvoreRepository.findByIdAndAtivaTrue(arvore.getId()))
                 .thenReturn(Optional.of(arvore));
+        when(registroArvoreService.buscarRegistroVigenteDTO(arvore.getId()))
+                .thenReturn(null);
 
         MapTreeDetailDTO detalhe = service.getMapTreeDetail(arvore.getId());
 
@@ -234,8 +234,23 @@ class MapServiceTest {
         assertThat(detalhe.especie()).isEqualTo("Ficus benjamina");
         assertThat(detalhe.lat()).isEqualTo(-8.05);
         assertThat(detalhe.lng()).isEqualTo(-34.88);
-        // currentRecord é null enquanto Pessoa 3 não entrega o contrato
+        // currentRecord é null porque não há registro aprovado
         assertThat(detalhe.currentRecord()).isNull();
+    }
+
+    @Test
+    void getMapTreeDetailDeveConterDimensoesDaArvore() {
+        Arvore arvore = arvoreComLocalizacao();
+        when(arvoreRepository.findByIdAndAtivaTrue(arvore.getId()))
+                .thenReturn(Optional.of(arvore));
+        when(registroArvoreService.buscarRegistroVigenteDTO(arvore.getId()))
+                .thenReturn(null);
+
+        MapTreeDetailDTO detalhe = service.getMapTreeDetail(arvore.getId());
+
+        assertThat(detalhe.alturaAtual()).isEqualTo(5.0);
+        assertThat(detalhe.dapAtual()).isEqualTo(0.15);
+        assertThat(detalhe.copaAtual()).isEqualTo(3.0);
     }
 
     @Test
@@ -253,6 +268,8 @@ class MapServiceTest {
         Arvore arvore = arvoreComLocalizacao();
         when(arvoreRepository.findByIdAndAtivaTrue(arvore.getId()))
                 .thenReturn(Optional.of(arvore));
+        when(registroArvoreService.buscarRegistroVigenteDTO(arvore.getId()))
+                .thenReturn(null);
 
         MapTreeDetailDTO detalhe = service.getMapTreeDetail(arvore.getId());
 
@@ -264,12 +281,6 @@ class MapServiceTest {
     // Builders de fixture
     // ----------------------------------------------------------------
 
-    /**
-     * Árvore com localização simulada via override dos helpers toLat()/toLng().
-     * Como o Point JTS não pode ser instanciado facilmente sem GeometryFactory,
-     * usamos uma subclasse anónima que sobrepõe os helpers — exactamente o que
-     * os DTOs chamam. Isto garante que o teste verifica o caminho real do código.
-     */
     private Arvore arvoreComLocalizacao() {
         Arvore arvore = new Arvore() {
             @Override public Double toLat() { return -8.05; }

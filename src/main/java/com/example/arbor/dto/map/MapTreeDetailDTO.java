@@ -1,5 +1,6 @@
 package com.example.arbor.dto.map;
 
+import com.example.arbor.dto.response.RegistroResponseDTO;
 import com.example.arbor.model.Arvore;
 import com.example.arbor.model.enums.EstadoGeral;
 import com.example.arbor.model.enums.Vigor;
@@ -8,10 +9,8 @@ import java.util.UUID;
 
 /**
  * Payload do painel lateral do mapa — GET /api/map/trees/{treeId}/detail.
- * Mais rico que MapTreeDTO, mas sem histórico completo de registos.
- *
- * O campo currentRecord será injectado pelo serviço assim que a Pessoa 3
- * disponibilizar o RegistroResumoDTO. Por agora fica como Object (null-safe).
+ * Inclui currentRecord com os dados do último registro aprovado
+ * (dimensões reais, condição, estrutura, conflitos, manejo).
  */
 public record MapTreeDetailDTO(
         UUID        id,
@@ -25,13 +24,14 @@ public record MapTreeDetailDTO(
         String      referencia,
         EstadoGeral status,
         Vigor       vigor,
+        Double      alturaAtual,
+        Double      dapAtual,
+        Double      copaAtual,
         String      observacoes,
-
-        // TODO Pessoa 3: substituir Object por RegistroResumoDTO
-        Object      currentRecord,
+        RegistroResponseDTO currentRecord,
         String      fotoUrl
 ) {
-    /** Construtor sem currentRecord — usado enquanto Pessoa 3 não entrega o contrato. */
+    /** Construtor a partir da entidade, sem currentRecord (preenchido depois pelo service). */
     public MapTreeDetailDTO(Arvore a) {
         this(
                 a.getId(),
@@ -45,6 +45,9 @@ public record MapTreeDetailDTO(
                 a.getReferencia(),
                 a.getEstadoGeral(),
                 a.getVigor(),
+                a.getAlturaAtual(),
+                a.getDapAtual(),
+                a.getCopaAtual(),
                 a.getObservacoes(),
                 null,
                 a.hasFoto() ? "/api/arvores/" + a.getId() + "/foto" : null

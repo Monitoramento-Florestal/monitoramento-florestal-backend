@@ -1,8 +1,10 @@
 package com.example.arbor.service;
 
 import com.example.arbor.dto.map.*;
+import com.example.arbor.dto.response.RegistroResponseDTO;
 import com.example.arbor.exception.RecursoNaoEncontradoException;
 import com.example.arbor.exception.RequisicaoInvalidaException;
+import com.example.arbor.model.Arvore;
 import com.example.arbor.repository.ArvoreRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,9 +32,11 @@ public class MapService {
     static final int MAP_CLUSTER_THRESHOLD = 200;
 
     private final ArvoreRepository arvoreRepository;
+    private final RegistroArvoreService registroArvoreService;
 
-    public MapService(ArvoreRepository arvoreRepository) {
+    public MapService(ArvoreRepository arvoreRepository, RegistroArvoreService registroArvoreService) {
         this.arvoreRepository = arvoreRepository;
+        this.registroArvoreService = registroArvoreService;
     }
 
     // ----------------------------------------------------------------
@@ -110,15 +114,39 @@ public class MapService {
     // ----------------------------------------------------------------
 
     /**
-     * Detalhe leve para o painel lateral do mapa.
-     * Não carrega histórico completo — apenas dados correntes da árvore.
-     * O currentRecord será injectado aqui assim que a Pessoa 3 disponibilizar o contrato.
+     * Detalhe para o painel lateral do mapa.
+     * Inclui dados correntes da árvore (altura, DAP, copa) e o
+     * currentRecord (último registro aprovado com dimensões completas).
      */
     public MapTreeDetailDTO getMapTreeDetail(UUID treeId) {
         return arvoreRepository.findByIdAndAtivaTrue(treeId)
-                .map(MapTreeDetailDTO::new)
+                .map(arvore -> toDetail(arvore))
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Árvore não encontrada ou inativa: " + treeId));
+    }
+
+    private MapTreeDetailDTO toDetail(Arvore arvore) {
+        RegistroResponseDTO currentRecord =
+                registroArvoreService.buscarRegistroVigenteDTO(arvore.getId());
+        return new MapTreeDetailDTO(
+                arvore.getId(),
+                arvore.getCodigo(),
+                arvore.getNomeComum(),
+                arvore.getEspecie(),
+                arvore.toLat(),
+                arvore.toLng(),
+                arvore.getBairro(),
+                arvore.getRua(),
+                arvore.getReferencia(),
+                arvore.getEstadoGeral(),
+                arvore.getVigor(),
+                arvore.getAlturaAtual(),
+                arvore.getDapAtual(),
+                arvore.getCopaAtual(),
+                arvore.getObservacoes(),
+                currentRecord,
+                arvore.hasFoto() ? "/api/arvores/" + arvore.getId() + "/foto" : null
+        );
     }
 
     // ----------------------------------------------------------------
